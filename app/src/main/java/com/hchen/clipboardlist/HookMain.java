@@ -34,17 +34,22 @@ public class HookMain implements IXposedHookLoadPackage {
     }
 
     private List<String> getAppsUsingInputMethod(Context context) {
-        if (context == null) {
-            Log.logE("getAppsUsingInputMethod", "context is null");
+        try {
+            if (context == null) {
+                Log.logE("getAppsUsingInputMethod", "context is null");
+                return new ArrayList<>();
+            }
+            List<String> pkgName = new ArrayList<>();
+            InputMethodManager inputMethodManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+            List<InputMethodInfo> enabledInputMethods = inputMethodManager.getEnabledInputMethodList();
+            for (InputMethodInfo inputMethodInfo : enabledInputMethods) {
+                pkgName.add(inputMethodInfo.getServiceInfo().packageName);
+            }
+            return pkgName;
+        } catch (Throwable throwable) {
+            Log.logE("getAppsUsingInputMethod", "have e: " + throwable);
             return new ArrayList<>();
         }
-        List<String> pkgName = new ArrayList<>();
-        InputMethodManager inputMethodManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        List<InputMethodInfo> enabledInputMethods = inputMethodManager.getEnabledInputMethodList();
-        for (InputMethodInfo inputMethodInfo : enabledInputMethods) {
-            pkgName.add(inputMethodInfo.getServiceInfo().packageName);
-        }
-        return pkgName;
     }
 
     private boolean isInputMethod(String pkgName) {
