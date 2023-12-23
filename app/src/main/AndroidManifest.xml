@@ -1,24 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/clipboardlist"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ClipboardList"
-        tools:targetApi="31">
+        android:theme="@style/Theme.ClipboardList">
 
         <meta-data
             android:name="xposedscope"
             android:resource="@array/hook_app" />
         <meta-data
             android:name="xposeddescription"
-            android:value="@string/app_name" />
+            android:value="@string/app_more" />
         <meta-data
             android:name="xposedsharedprefs"
             android:value="true" />
