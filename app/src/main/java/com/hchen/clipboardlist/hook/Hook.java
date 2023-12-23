@@ -60,6 +60,15 @@ public abstract class Hook extends Log {
         }
     }
 
+    public Class<?> findClassIfExists(String className, ClassLoader classLoader) {
+        try {
+            return findClass(className, classLoader);
+        } catch (XposedHelpers.ClassNotFoundError e) {
+            logE(tag, "Class no found 2: " + e);
+            return null;
+        }
+    }
+
     public abstract static class HookAction extends XC_MethodHook {
 
         protected void before(MethodHookParam param) throws Throwable {
@@ -158,23 +167,6 @@ public abstract class Hook extends Log {
                 Object[] newArray = new Object[parameterTypesAndCallback.length - 1];
                 System.arraycopy(parameterTypesAndCallback, 0, newArray, 0, newArray.length);
                 getDeclaredMethod(clazz, methodName, newArray);
-                /*旧实现*/
-                /*Class<?>[] classes = new Class<?>[newArray.length];
-                Class<?> newclass = null;
-                for (int i = 0; i < newArray.length; i++) {
-                    Object type = newArray[i];
-                    if (type instanceof Class) {
-                        newclass = (Class<?>) newArray[i];
-                    } else if (type instanceof String) {
-                        newclass = findClassIfExists((String) type);
-                        if (newclass == null) {
-                            logE(tag, "class can't is null class:" + clazz + " method: " + methodName);
-                            return;
-                        }
-                    }
-                    classes[i] = newclass;
-                }
-                checkDeclaredMethod(clazz, methodName, classes);*/
             }
             XposedHelpers.findAndHookMethod(clazz, methodName, parameterTypesAndCallback);
             logI(tag, "Hook: " + clazz + " method: " + methodName);
@@ -185,6 +177,10 @@ public abstract class Hook extends Log {
 
     public void findAndHookMethod(String className, String methodName, Object... parameterTypesAndCallback) {
         findAndHookMethod(findClassIfExists(className), methodName, parameterTypesAndCallback);
+    }
+
+    public void findAndHookMethod(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback) {
+        findAndHookMethod(findClassIfExists(className, classLoader), methodName, parameterTypesAndCallback);
     }
 
     public void findAndHookConstructor(Class<?> clazz, Object... parameterTypesAndCallback) {
@@ -203,6 +199,15 @@ public abstract class Hook extends Log {
     public void hookAllMethods(String className, String methodName, HookAction callback) {
         try {
             Class<?> hookClass = findClassIfExists(className);
+            hookAllMethods(hookClass, methodName, callback);
+        } catch (Throwable e) {
+            logE(tag, "Hook The: " + e);
+        }
+    }
+
+    public void hookAllMethods(String className, ClassLoader classLoader, String methodName, HookAction callback) {
+        try {
+            Class<?> hookClass = findClassIfExists(className, classLoader);
             hookAllMethods(hookClass, methodName, callback);
         } catch (Throwable e) {
             logE(tag, "Hook The: " + e);

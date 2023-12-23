@@ -92,7 +92,7 @@ public class ClipboardList extends Hook {
                                     }
                                 }
                                 param.setResult(new ArrayList<>());
-                                logD(tag + ": get saved clipboard list size is 0.");
+                                logW(tag, "get saved clipboard list size is 0.");
                                 return;
                             }
                             if (isEmptyFile(lastFilePath)) {
@@ -138,9 +138,9 @@ public class ClipboardList extends Hook {
                                         }
                                     }
                                     /*else if (jsonToBean.hashCode() != lastArray.hashCode()) {
-                                     *//*很极端的情况，应该不会发生*//*
-                                    mArray.addAll(0, jsonToBean);
-                                }*/
+                                        // 很极端的情况，应该不会发生
+                                        mArray.addAll(0, jsonToBean);
+                                    }*/
                                 }
                                 /*置旧*/
                                 lastArray = jsonToBean;
