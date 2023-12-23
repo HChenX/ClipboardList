@@ -28,7 +28,8 @@ android {
         applicationId "com.hchen.clipboardlist"
         minSdk 30
         targetSdk 34
-        versionCode 1
+        //noinspection HighAppVersionCode
+        versionCode 2023122300
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
