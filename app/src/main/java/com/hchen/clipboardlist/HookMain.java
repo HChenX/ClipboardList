@@ -7,6 +7,7 @@ import android.view.inputmethod.InputMethodManager;
 import com.hchen.clipboardlist.clipboard.ClipboardList;
 import com.hchen.clipboardlist.hook.Hook;
 import com.hchen.clipboardlist.hook.Log;
+import com.hchen.clipboardlist.unlockIme.UnlockIme;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,7 @@ public class HookMain implements IXposedHookLoadPackage {
         }
         String pkg = lpparam.packageName;
         initHook(new ClipboardList(), lpparam, isInputMethod(pkg));
+        initHook(new UnlockIme(), lpparam, isInputMethod(pkg));
     }
 
     public static void initHook(Hook hook, LoadPackageParam param, boolean needHook) {

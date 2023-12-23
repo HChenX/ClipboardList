@@ -110,7 +110,7 @@ public abstract class Hook extends Log {
             try {
                 before(param);
             } catch (Throwable e) {
-                logE("beforeHookedMethod", "" + e);
+                logE("before", "" + e);
             }
         }
 
@@ -119,7 +119,7 @@ public abstract class Hook extends Log {
             try {
                 after(param);
             } catch (Throwable e) {
-                logE("afterHookedMethod", "" + e);
+                logE("after", "" + e);
             }
         }
     }
@@ -142,7 +142,7 @@ public abstract class Hook extends Log {
                 Object result = replace(param);
                 param.setResult(result);
             } catch (Throwable t) {
-                logE("replaceHookedMethod", "" + t);
+                logE("replace", "" + t);
             }
         }
     }
@@ -255,7 +255,12 @@ public abstract class Hook extends Log {
     }
 
     public Object callStaticMethod(Class<?> clazz, String methodName, Object... args) {
-        return XposedHelpers.callStaticMethod(clazz, methodName, args);
+        try {
+            return XposedHelpers.callStaticMethod(clazz, methodName, args);
+        } catch (Throwable throwable) {
+            logE(tag, "callStaticMethod e: " + throwable);
+            return null;
+        }
     }
 
     public Method getDeclaredMethod(String className, String method, Object... type) throws NoSuchMethodException {
@@ -379,8 +384,26 @@ public abstract class Hook extends Log {
         try {
             return XposedHelpers.getObjectField(obj, fieldName);
         } catch (Throwable e) {
-            logE(tag, "getObject: " + obj.toString() + " field: " + fieldName);
-            throw new Throwable(tag + ": getObject error");
+            logE(tag, "getObjectField: " + obj.toString() + " field: " + fieldName);
+            throw new Throwable(tag + ": getObjectField error");
+        }
+    }
+
+    public Object getStaticObjectField(Class<?> clazz, String fieldName) throws Throwable {
+        try {
+            return XposedHelpers.getStaticObjectField(clazz, fieldName);
+        } catch (Throwable e) {
+            logE(tag, "getStaticObjectField: " + clazz.getSimpleName() + " field: " + fieldName);
+            throw new Throwable(tag + ": getStaticObjectField error");
+        }
+    }
+
+    public void setStaticObjectField(Class<?> clazz, String fieldName, Object value) throws Throwable {
+        try {
+            XposedHelpers.setStaticObjectField(clazz, fieldName, value);
+        } catch (Throwable e) {
+            logE(tag, "setStaticObjectField: " + clazz.getSimpleName() + " field: " + fieldName + " value: " + value);
+            throw new Throwable(tag + ": setStaticObjectField error");
         }
     }
 
@@ -451,5 +474,27 @@ public abstract class Hook extends Log {
         }
         return null;
     }
+
+    public static String getProp(String key, String defaultValue) {
+        try {
+            return (String) XposedHelpers.callStaticMethod(XposedHelpers.findClass("android.os.SystemProperties",
+                            null),
+                    "get", key, defaultValue);
+        } catch (Throwable throwable) {
+            logE("getProp", "key get e: " + key + " will return default: " + defaultValue + " e:" + throwable);
+            return defaultValue;
+        }
+    }
+
+    public static void setProp(String key, String val) {
+        try {
+            XposedHelpers.callStaticMethod(XposedHelpers.findClass("android.os.SystemProperties",
+                            null),
+                    "set", key, val);
+        } catch (Throwable throwable) {
+            logE("setProp", "set key e: " + key + " e:" + throwable);
+        }
+    }
+
 }
 
