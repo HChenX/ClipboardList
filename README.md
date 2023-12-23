@@ -5,7 +5,7 @@
 #### 模块功能:
 
 - 解除“剪贴板和常用语”功能的20条限制和时间限制。
-- 解除输入法全面屏优化。
+- 解锁输入法全面屏优化。
 - 模块仅限小米设备使用！适配`MIUI`,`HyperOS`.
 
 #### 模块使用方法：
@@ -17,31 +17,31 @@
 
 - [解除“剪贴板和常用语”功能的20条限制和时间限制]
 - 代码来源：@焕晨HChen([@HChenX](https://github.com/HChenX))
-- [解除输入法全面屏优化]
+- [解锁输入法全面屏优化]
 - 代码来源：HyperCelier([HyperCelier](https://github.com/ReChronoRain/HyperCeiler))
 
 - 项目将保持开源！欢迎互相学习！欢迎PR！
 - 对本项目的使用需要注明，请遵守开源协议！
 
-### Remove Clipboard and Phrase Restrictions Module.
+### Remove clipboard and common language restrictions.
 
-#### Module Features:
+#### Module functions:
 
-- Removes the 20 restrictions and time limitations on the "Clipboard and Phrases" functionality.
-- Disables full-screen optimization for the input method.
-- This module is exclusively for Xiaomi devices! Compatible with `MIUI` and `HyperOS`.
+- Remove the 20 restrictions and time limit on the "clipboard and common phrases" function.
+- Unlock comprehensive screen optimization for input methods.
+- The module is only available for Xiaomi devices! Adapt to MIUI, HyperOS
 
-#### Instructions for Using the Module:
+#### Module usage method:
 
-- Check the input methods for which you want to lift the restrictions, then restart the input method.
-- If it doesn't work, try restarting your phone and then attempt again.
+- Select the input method scope that needs to be unrestricted and restart the input method.
+- If it doesn't work, please try restarting your phone and trying again.
 
-#### Project Disclaimer:
+#### Project Statement:
 
-- [Remove 20 restrictions and time limitations on "Clipboard and Phrases" functionality]
+- [Remove 20 restrictions and time limits on the "clipboard and common phrases" function]
 - Code source: @焕晨HChen([@HChenX](https://github.com/HChenX))
-- [Remove full-screen optimization for the input method]
+- [Unlock Input Method Full Screen Optimization]
 - Code source: HyperCelier([HyperCelier](https://github.com/ReChronoRain/HyperCeiler))
 
-- The project will remain open source! Collaboration and pull requests are welcome!
-- Proper attribution is required for using this project. Please adhere to the open-source license!
+- The project will remain open source! Welcome to learn from each other! Welcome PR!
+- The use of this project needs to be noted, please comply with the open source agreement!
