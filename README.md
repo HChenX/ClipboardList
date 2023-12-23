@@ -29,7 +29,7 @@
 
 - Removes the 20 restrictions and time limitations on the "Clipboard and Phrases" functionality.
 - Disables full-screen optimization for the input method.
-- This module is exclusively for Xiaomi devices! Compatible with MIUI and HyperOS.
+- This module is exclusively for Xiaomi devices! Compatible with `MIUI` and `HyperOS`.
 
 #### Instructions for Using the Module:
 
