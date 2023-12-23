@@ -210,7 +210,7 @@ public abstract class Hook extends Log {
             Class<?> hookClass = findClassIfExists(className, classLoader);
             hookAllMethods(hookClass, methodName, callback);
         } catch (Throwable e) {
-            logE(tag, "Hook The: " + e);
+            logE(tag, "Hook class: " + className + " method: " + methodName + " e: " + e);
         }
     }
 
@@ -219,7 +219,7 @@ public abstract class Hook extends Log {
             int Num = XposedBridge.hookAllMethods(hookClass, methodName, callback).size();
             logI(tag, "Hook: " + hookClass + " methodName: " + methodName + " Num is: " + Num);
         } catch (Throwable e) {
-            logE(tag, "Hook The: " + e);
+            logE(tag, "Hook class: " + hookClass.getSimpleName() + " method: " + methodName + " e: " + e);
         }
     }
 
