@@ -19,7 +19,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
+import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
@@ -95,7 +100,7 @@ public class ClipboardList extends Hook {
                                 logW(tag, "get saved clipboard list size is 0.");
                                 return;
                             }
-                            if (isEmptyFile(lastFilePath)) {
+                            if (!isEmptyFile(lastFilePath)) {
                                 lastArray = jsonToLIst(lastFilePath, classLoader);
                             }
                             /*文件不为空说明有数据*/
@@ -144,20 +149,13 @@ public class ClipboardList extends Hook {
                                 }
                                 /*置旧*/
                                 lastArray = jsonToBean;
-                                if (resetFile(lastFilePath)) {
-                                    writeFile(lastFilePath, listToJson(lastArray));
-                                }
-                                /*清空文件写入*/
-                                if (resetFile(filePath)) {
-                                    writeFile(filePath, listToJson(mArray));
-                                }
+                                writeFile(lastFilePath, listToJson(lastArray));
+                                writeFile(filePath, listToJson(mArray));
                                 param.setResult(mArray);
                             } else {
                                 /*置旧*/
                                 lastArray = jsonToBean;
-                                if (resetFile(lastFilePath)) {
-                                    writeFile(lastFilePath, listToJson(lastArray));
-                                }
+                                writeFile(lastFilePath, listToJson(lastArray));
                                 writeFile(filePath, listToJson(jsonToBean));
                                 param.setResult(jsonToBean);
                             }
@@ -190,18 +188,12 @@ public class ClipboardList extends Hook {
                         ArrayList<?> arrayList = (ArrayList<?>) param.args[1];
                         if (arrayList.isEmpty()) {
                             lastArray = new ArrayList<>();
-                            if (resetFile(lastFilePath)) {
-                                writeFile(lastFilePath, new JSONArray());
-                            }
+                            resetFile(lastFilePath);
                         } else {
                             lastArray = arrayList;
-                            if (resetFile(lastFilePath)) {
-                                writeFile(lastFilePath, listToJson(arrayList));
-                            }
+                            writeFile(lastFilePath, listToJson(arrayList));
                         }
-                        if (resetFile(filePath)) {
-                            writeFile(filePath, listToJson(arrayList));
-                        }
+                        writeFile(filePath, listToJson(arrayList));
                     }
                 }
         );
@@ -266,6 +258,7 @@ public class ClipboardList extends Hook {
             try {
                 if (file.createNewFile()) {
                     writeFile(path, new JSONArray());
+                    setPermission(path);
                     logI(tag, "createNewFile: " + file);
                 } else {
                     logE(tag, "createNewFile: " + file);
@@ -273,6 +266,8 @@ public class ClipboardList extends Hook {
             } catch (IOException e) {
                 logE(tag, "createNewFile: " + e);
             }
+        } else {
+            setPermission(path);
         }
     }
 
@@ -386,6 +381,27 @@ public class ClipboardList extends Hook {
         } catch (Throwable throwable) {
             logE(tag, "getContent array: " + arrayList + " num: " + num + " e: " + throwable);
             throw new Throwable("callMethod getContent error: " + throwable);
+        }
+    }
+
+    public void setPermission(String paths) {
+        // 指定文件的路径
+        Path filePath = Paths.get(paths);
+
+        try {
+            // 获取当前文件的权限
+            Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(filePath);
+
+            // 添加世界可读写权限
+            permissions.add(PosixFilePermission.OTHERS_READ);
+            permissions.add(PosixFilePermission.OTHERS_WRITE);
+            permissions.add(PosixFilePermission.GROUP_READ);
+            permissions.add(PosixFilePermission.GROUP_WRITE);
+
+            // 设置新的权限
+            Files.setPosixFilePermissions(filePath, permissions);
+        } catch (IOException e) {
+            logE(tag, "setPermission: " + e);
         }
     }
 }
