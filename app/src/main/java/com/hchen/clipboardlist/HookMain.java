@@ -19,7 +19,7 @@ public class HookMain implements IXposedHookLoadPackage {
     public static List<String> mAppsUsingInputMethod = new ArrayList<>();
 
     @Override
-    public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
+    public void handleLoadPackage(LoadPackageParam lpparam) {
         if (mAppsUsingInputMethod.isEmpty()) {
             mAppsUsingInputMethod = getAppsUsingInputMethod(Hook.findContext());
         }

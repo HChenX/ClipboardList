@@ -6,6 +6,8 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.hchen.clipboardlist.hook.Hook;
 
+import java.util.List;
+
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class UnlockIme extends Hook {
@@ -58,6 +60,7 @@ public class UnlockIme extends Hook {
                 new HookAction() {
                     @Override
                     protected void after(MethodHookParam param) {
+                        getSupportIme((ClassLoader) param.args[0]);
                         hookDeleteNotSupportIme("com.miui.inputmethod.InputMethodBottomManager$MiuiSwitchInputMethodListener", (ClassLoader) param.args[0]);
                         Class<?> InputMethodBottomManager = findClassIfExists("com.miui.inputmethod.InputMethodBottomManager", (ClassLoader) param.args[0]);
                         if (InputMethodBottomManager != null) {
@@ -69,15 +72,11 @@ public class UnlockIme extends Hook {
                                         new HookAction() {
                                             @Override
                                             protected void before(MethodHookParam param) {
-                                                try {
-                                                    param.setResult(((InputMethodManager) getObjectField(
-                                                            getStaticObjectField(
-                                                                    InputMethodBottomManager,
-                                                                    "sBottomViewHelper"),
-                                                            "mImm")).getEnabledInputMethodList());
-                                                } catch (Throwable throwable) {
-                                                    logE(tag, "getObjectField: " + throwable);
-                                                }
+                                                param.setResult(((InputMethodManager) getObjectField(
+                                                        getStaticObjectField(
+                                                                InputMethodBottomManager,
+                                                                "sBottomViewHelper"),
+                                                        "mImm")).getEnabledInputMethodList());
                                             }
                                         }
                                 );
@@ -171,6 +170,31 @@ public class UnlockIme extends Hook {
             hookAllMethods(findClassIfExists(className, classLoader), "deleteNotSupportIme", returnConstant(null));
         } catch (Throwable throwable) {
             logE(tag, "Hook method deleteNotSupportIme: " + throwable);
+        }
+    }
+
+    /**
+     * 使切换输入法界面显示第三方输入法
+     *
+     * @param classLoader
+     */
+    private void getSupportIme(ClassLoader classLoader) {
+        try {
+            findAndHookMethod("com.miui.inputmethod.InputMethodBottomManager",
+                    classLoader, "getSupportIme",
+                    new HookAction() {
+
+                        @Override
+                        protected void before(MethodHookParam param) {
+                            List<?> getEnabledInputMethodList = (List<?>) callMethod(getObjectField(getStaticObjectField(
+                                    findClassIfExists("com.miui.inputmethod.InputMethodBottomManager", classLoader),
+                                    "sBottomViewHelper"), "mImm"), "getEnabledInputMethodList");
+                            param.setResult(getEnabledInputMethodList);
+                        }
+                    }
+            );
+        } catch (Throwable e) {
+            logE(tag, "Hook method getSupportIme: " + e);
         }
     }
 }

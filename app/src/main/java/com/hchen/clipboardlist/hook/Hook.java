@@ -26,7 +26,7 @@ public abstract class Hook extends Log {
             init();
             logI(tag, "Hook Done!");
         } catch (Throwable s) {
-//            logE(tag, "Hook Failed: " + e);
+            logE(tag, "Unhandled errors: " + s);
         }
     }
 
@@ -34,11 +34,11 @@ public abstract class Hook extends Log {
         this.loadPackageParam = loadPackageParam;
     }
 
-    public Class<?> findClass(String className) {
+    public Class<?> findClass(String className) throws XposedHelpers.ClassNotFoundError {
         return findClass(className, loadPackageParam.classLoader);
     }
 
-    public Class<?> findClass(String className, ClassLoader classLoader) {
+    public Class<?> findClass(String className, ClassLoader classLoader) throws XposedHelpers.ClassNotFoundError {
         return XposedHelpers.findClass(className, classLoader);
     }
 
@@ -154,9 +154,9 @@ public abstract class Hook extends Log {
                 return;
             }
             XposedBridge.hookMethod(method, callback);
-            logI(tag, "Hook: " + method);
+            logI(tag, "hookMethod: " + method);
         } catch (Throwable e) {
-            logE(tag, "Hook: " + method);
+            logE(tag, "hookMethod: " + method);
         }
     }
 
@@ -245,12 +245,12 @@ public abstract class Hook extends Log {
         }
     }
 
-    public Object callMethod(Object obj, String methodName, Object... args) throws Throwable {
+    public Object callMethod(Object obj, String methodName, Object... args) {
         try {
             return XposedHelpers.callMethod(obj, methodName, args);
         } catch (Throwable e) {
             logE(tag, "callMethod: " + obj.toString() + " method: " + methodName + " args: " + Arrays.toString(args) + " e: " + e);
-            throw new Throwable(tag + ": callMethod error");
+            return null;
         }
     }
 
@@ -348,7 +348,7 @@ public abstract class Hook extends Log {
         return haveMethod.get(0);
     }
 
-    public void getDeclaredField(XC_MethodHook.MethodHookParam param, String iNeedString, Object iNeedTo) {
+    public void setDeclaredField(XC_MethodHook.MethodHookParam param, String iNeedString, Object iNeedTo) {
         if (param != null) {
             try {
                 Field setString = param.thisObject.getClass().getDeclaredField(iNeedString);
@@ -380,30 +380,29 @@ public abstract class Hook extends Log {
         }
     }
 
-    public Object getObjectField(Object obj, String fieldName) throws Throwable {
+    public Object getObjectField(Object obj, String fieldName) {
         try {
             return XposedHelpers.getObjectField(obj, fieldName);
         } catch (Throwable e) {
             logE(tag, "getObjectField: " + obj.toString() + " field: " + fieldName);
-            throw new Throwable(tag + ": getObjectField error");
+            return null;
         }
     }
 
-    public Object getStaticObjectField(Class<?> clazz, String fieldName) throws Throwable {
+    public Object getStaticObjectField(Class<?> clazz, String fieldName) {
         try {
             return XposedHelpers.getStaticObjectField(clazz, fieldName);
         } catch (Throwable e) {
             logE(tag, "getStaticObjectField: " + clazz.getSimpleName() + " field: " + fieldName);
-            throw new Throwable(tag + ": getStaticObjectField error");
+            return null;
         }
     }
 
-    public void setStaticObjectField(Class<?> clazz, String fieldName, Object value) throws Throwable {
+    public void setStaticObjectField(Class<?> clazz, String fieldName, Object value) {
         try {
             XposedHelpers.setStaticObjectField(clazz, fieldName, value);
         } catch (Throwable e) {
             logE(tag, "setStaticObjectField: " + clazz.getSimpleName() + " field: " + fieldName + " value: " + value);
-            throw new Throwable(tag + ": setStaticObjectField error");
         }
     }
 
@@ -470,7 +469,8 @@ public abstract class Hook extends Log {
                             "getSystemContext");
             }
             return context;
-        } catch (Throwable ignore) {
+        } catch (Throwable e) {
+            logE("findContext", "null: " + e);
         }
         return null;
     }

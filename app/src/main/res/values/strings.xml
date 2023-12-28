@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">ClipboardList</string>
-    <string name="app_more">解除剪贴板和常用语限制</string>
+    <string name="app_more">Remove clipboard and phrase restrictions</string>
 </resources>
