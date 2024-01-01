@@ -2,8 +2,6 @@ package com.hchen.clipboardlist.unlockIme;
 
 import static com.hchen.clipboardlist.hook.Hook.HookAction.returnConstant;
 
-import android.view.inputmethod.InputMethodManager;
-
 import com.hchen.clipboardlist.hook.Hook;
 
 import java.util.List;
@@ -37,24 +35,23 @@ public class UnlockIme extends Hook {
                 break;
             }
         }
-        if (!isNonCustomize) {
-            return;
+        if (isNonCustomize) {
+            Class<?> sInputMethodServiceInjector = findClassIfExists("android.inputmethodservice.InputMethodServiceInjector");
+            if (sInputMethodServiceInjector == null)
+                sInputMethodServiceInjector = findClassIfExists("android.inputmethodservice.InputMethodServiceStubImpl");
+            if (sInputMethodServiceInjector != null) {
+                hookSIsImeSupport(sInputMethodServiceInjector);
+                hookIsXiaoAiEnable(sInputMethodServiceInjector);
+                setPhraseBgColor(sInputMethodServiceInjector);
+            } else {
+                logE(tag, "Class not found: InputMethodServiceInjector");
+            }
         }
-        Class<?> sInputMethodServiceInjector = findClassIfExists("android.inputmethodservice.InputMethodServiceInjector");
-        if (sInputMethodServiceInjector == null)
-            sInputMethodServiceInjector = findClassIfExists("android.inputmethodservice.InputMethodServiceStubImpl");
-        if (sInputMethodServiceInjector != null) {
-            hookSIsImeSupport(sInputMethodServiceInjector);
-            hookIsXiaoAiEnable(sInputMethodServiceInjector);
-            setPhraseBgColor(sInputMethodServiceInjector);
-        } else {
-            logE(tag, "Class not found: InputMethodServiceInjector");
-        }
-
         hookDeleteNotSupportIme("android.inputmethodservice.InputMethodServiceInjector$MiuiSwitchInputMethodListener",
                 param.classLoader);
 
         // 获取常用语的ClassLoader
+        boolean finalIsNonCustomize = isNonCustomize;
         findAndHookMethod("android.inputmethodservice.InputMethodModuleManager",
                 "loadDex", ClassLoader.class, String.class,
                 new HookAction() {
@@ -64,24 +61,9 @@ public class UnlockIme extends Hook {
                         hookDeleteNotSupportIme("com.miui.inputmethod.InputMethodBottomManager$MiuiSwitchInputMethodListener", (ClassLoader) param.args[0]);
                         Class<?> InputMethodBottomManager = findClassIfExists("com.miui.inputmethod.InputMethodBottomManager", (ClassLoader) param.args[0]);
                         if (InputMethodBottomManager != null) {
-                            hookSIsImeSupport(InputMethodBottomManager);
-                            hookIsXiaoAiEnable(InputMethodBottomManager);
-                            try {
-                                // 针对A11的修复切换输入法列表
-                                hookAllMethods(InputMethodBottomManager, "getSupportIme",
-                                        new HookAction() {
-                                            @Override
-                                            protected void before(MethodHookParam param) {
-                                                param.setResult(((InputMethodManager) getObjectField(
-                                                        getStaticObjectField(
-                                                                InputMethodBottomManager,
-                                                                "sBottomViewHelper"),
-                                                        "mImm")).getEnabledInputMethodList());
-                                            }
-                                        }
-                                );
-                            } catch (Throwable throwable) {
-                                logE(tag, "getSupportIme: " + throwable);
+                            if (finalIsNonCustomize) {
+                                hookSIsImeSupport(InputMethodBottomManager);
+                                hookIsXiaoAiEnable(InputMethodBottomManager);
                             }
                         } else {
                             logE(tag, "Class not found: com.miui.inputmethod.InputMethodBottomManager");
