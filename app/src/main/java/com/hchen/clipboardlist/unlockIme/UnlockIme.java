@@ -59,14 +59,14 @@ public class UnlockIme extends Hook {
                     protected void after(MethodHookParam param) {
                         getSupportIme((ClassLoader) param.args[0]);
                         hookDeleteNotSupportIme("com.miui.inputmethod.InputMethodBottomManager$MiuiSwitchInputMethodListener", (ClassLoader) param.args[0]);
-                        Class<?> InputMethodBottomManager = findClassIfExists("com.miui.inputmethod.InputMethodBottomManager", (ClassLoader) param.args[0]);
-                        if (InputMethodBottomManager != null) {
-                            if (finalIsNonCustomize) {
+                        if (finalIsNonCustomize) {
+                            Class<?> InputMethodBottomManager = findClassIfExists("com.miui.inputmethod.InputMethodBottomManager", (ClassLoader) param.args[0]);
+                            if (InputMethodBottomManager != null) {
                                 hookSIsImeSupport(InputMethodBottomManager);
                                 hookIsXiaoAiEnable(InputMethodBottomManager);
+                            } else {
+                                logE(tag, "Class not found: com.miui.inputmethod.InputMethodBottomManager");
                             }
-                        } else {
-                            logE(tag, "Class not found: com.miui.inputmethod.InputMethodBottomManager");
                         }
                     }
                 }
@@ -126,7 +126,7 @@ public class UnlockIme extends Hook {
                     }
             );
         } catch (Throwable throwable) {
-            logE(tag, "Failed to set the color of the MiuiBottomView: " + throwable);
+            logE(tag, "Set the color of the MiuiBottomView: " + throwable);
         }
     }
 
@@ -136,9 +136,13 @@ public class UnlockIme extends Hook {
      * @param clazz 声明或继承字段的类
      */
     private void customizeBottomViewColor(Class<?> clazz) {
-        if (navBarColor != 0) {
-            int color = -0x1 - navBarColor;
-            callStaticMethod(clazz, "customizeBottomViewColor", true, navBarColor, color | -0x1000000, color | 0x66000000);
+        try {
+            if (navBarColor != 0) {
+                int color = -0x1 - navBarColor;
+                callStaticMethod(clazz, "customizeBottomViewColor", true, navBarColor, color | -0x1000000, color | 0x66000000);
+            }
+        } catch (Throwable e) {
+            logE(tag, "Call customizeBottomViewColor: " + e);
         }
     }
 
