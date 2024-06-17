@@ -29,10 +29,9 @@ android {
         minSdk 30
         targetSdk 34
         //noinspection HighAppVersionCode
-        versionCode 2024010100
-        versionName "1.1"
+        versionCode 2024061700
+        versionName "2.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.release
     }
 
@@ -44,12 +43,6 @@ android {
             excludes += "/*.bin"
             excludes += "/*.json"
         }
-        /*dex {
-            useLegacyPackaging = true
-        }
-        jniLibs {
-            useLegacyPackaging true
-        }*/
     }
 
     buildTypes {
@@ -66,8 +59,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_20
-        targetCompatibility JavaVersion.VERSION_20
+        sourceCompatibility JavaVersion.VERSION_22
+        targetCompatibility JavaVersion.VERSION_22
     }
 
     buildFeatures {
@@ -84,10 +77,6 @@ dependencies {
 
     /*Xposed*/
     compileOnly 'de.robv.android.xposed:api:82'
-
-//    implementation 'androidx.appcompat:appcompat:1.6.1'
-//    implementation 'com.google.android.material:material:1.11.0'
-//    testImplementation 'junit:junit:4.13.2'
-//    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    implementation 'com.github.HChenX:HookTool:v.0.9.6.3'
+    implementation 'com.google.code.gson:gson:2.11.0'
 }

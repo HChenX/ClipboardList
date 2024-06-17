@@ -18,14 +18,16 @@
  */
 package com.hchen.clipboardlist;
 
+import static com.hchen.hooktool.log.XposedLog.logE;
+
 import android.content.Context;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 
-import com.hchen.clipboardlist.clipboard.ClipboardList;
-import com.hchen.clipboardlist.hook.Hook;
-import com.hchen.clipboardlist.hook.Log;
+import com.hchen.clipboardlist.clipboard.NewClipboardList;
 import com.hchen.clipboardlist.unlockIme.UnlockIme;
+import com.hchen.hooktool.HCInit;
+import com.hchen.hooktool.utils.ContextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,22 +41,22 @@ public class HookMain implements IXposedHookLoadPackage {
     @Override
     public void handleLoadPackage(LoadPackageParam lpparam) {
         if (mAppsUsingInputMethod.isEmpty()) {
-            mAppsUsingInputMethod = getAppsUsingInputMethod(Hook.findContext());
+            mAppsUsingInputMethod = getAppsUsingInputMethod(ContextUtils.getContext(ContextUtils.FLAG_ALL));
         }
         String pkg = lpparam.packageName;
-        initHook(new ClipboardList(), lpparam, isInputMethod(pkg));
-        initHook(new UnlockIme(), lpparam, isInputMethod(pkg));
-    }
-
-    public static void initHook(Hook hook, LoadPackageParam param, boolean needHook) {
-        if (needHook)
-            hook.runHook(param);
+        HCInit.setTAG("ClipboardList");
+        HCInit.setLogLevel(HCInit.LOG_D);
+        if (isInputMethod(pkg)) {
+            HCInit.initLoadPackageParam(lpparam);
+            new NewClipboardList().onCreate();
+            new UnlockIme().onCreate();
+        }
     }
 
     private List<String> getAppsUsingInputMethod(Context context) {
         try {
             if (context == null) {
-                Log.logE("getAppsUsingInputMethod", "context is null");
+                logE("ClipboardList", "context is null");
                 return new ArrayList<>();
             }
             List<String> pkgName = new ArrayList<>();
@@ -65,7 +67,7 @@ public class HookMain implements IXposedHookLoadPackage {
             }
             return pkgName;
         } catch (Throwable throwable) {
-            Log.logE("getAppsUsingInputMethod", "have e: " + throwable);
+            logE("ClipboardList", throwable);
             return new ArrayList<>();
         }
     }

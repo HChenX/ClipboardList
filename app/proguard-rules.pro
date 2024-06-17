@@ -21,4 +21,4 @@
 #-renamesourcefileattribute SourceFile
 
 -keep class com.hchen.clipboardlist.HookMain
--keep class * extends com.hchen.clipboardlist.hook.Hook
+-keep class * extends com.hchen.hooktool.BaseHC
