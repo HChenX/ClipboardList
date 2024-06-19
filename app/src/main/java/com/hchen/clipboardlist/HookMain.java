@@ -25,9 +25,12 @@ import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 
 import com.hchen.clipboardlist.clipboard.NewClipboardList;
+import com.hchen.clipboardlist.phrase.UnPhraseLimit;
 import com.hchen.clipboardlist.unlockIme.UnlockIme;
 import com.hchen.hooktool.HCInit;
 import com.hchen.hooktool.utils.ContextUtils;
+
+import org.luckypray.dexkit.DexKitBridge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +49,14 @@ public class HookMain implements IXposedHookLoadPackage {
         String pkg = lpparam.packageName;
         HCInit.setTAG("ClipboardList");
         HCInit.setLogLevel(HCInit.LOG_D);
+        if (lpparam.packageName.equals("com.miui.phrase")) {
+            HCInit.initLoadPackageParam(lpparam);
+            System.loadLibrary("dexkit");
+            DexKitBridge dexKitBridge = DexKitBridge.create(lpparam.appInfo.sourceDir);
+            new UnPhraseLimit(dexKitBridge).onCreate();
+            dexKitBridge.close();
+            return;
+        }
         if (isInputMethod(pkg)) {
             HCInit.initLoadPackageParam(lpparam);
             new NewClipboardList().onCreate();

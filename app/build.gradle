@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
 }
 
 android {
@@ -29,8 +30,8 @@ android {
         minSdk 30
         targetSdk 34
         //noinspection HighAppVersionCode
-        versionCode 2024061900
-        versionName "2.1"
+        versionCode 2024061901
+        versionName "3.0"
 
         signingConfig signingConfigs.release
     }
@@ -79,4 +80,5 @@ dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
     implementation 'com.github.HChenX:HookTool:v.0.9.6.5'
     implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'org.luckypray:dexkit:2.0.2'
 }
