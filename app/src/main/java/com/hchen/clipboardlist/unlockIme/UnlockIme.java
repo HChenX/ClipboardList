@@ -86,8 +86,6 @@ public class UnlockIme extends BaseHC {
 
     /**
      * 跳过包名检查，直接开启输入法优化
-     *
-     * @param clazz 声明或继承字段的类
      */
     private void hookSIsImeSupport(Class<?> clazz) {
         try {
@@ -99,8 +97,6 @@ public class UnlockIme extends BaseHC {
 
     /**
      * 小爱语音输入按钮失效修复
-     *
-     * @param clazz 声明或继承方法的类
      */
     private void hookIsXiaoAiEnable(Class<?> clazz) {
         try {
@@ -112,8 +108,6 @@ public class UnlockIme extends BaseHC {
 
     /**
      * 在适当的时机修改抬高区域背景颜色
-     *
-     * @param clazz 声明或继承字段的类
      */
     private void setPhraseBgColor(Class<?> clazz) {
         try {
@@ -143,8 +137,6 @@ public class UnlockIme extends BaseHC {
 
     /**
      * 将导航栏颜色赋值给输入法优化的底图
-     *
-     * @param clazz 声明或继承字段的类
      */
     private void customizeBottomViewColor(Class<?> clazz) {
         try {
@@ -159,8 +151,6 @@ public class UnlockIme extends BaseHC {
 
     /**
      * 针对A10的修复切换输入法列表
-     *
-     * @param className 声明或继承方法的类的名称
      */
     private void hookDeleteNotSupportIme(String className, ClassLoader classLoader) {
         try {
@@ -173,8 +163,6 @@ public class UnlockIme extends BaseHC {
 
     /**
      * 使切换输入法界面显示第三方输入法
-     *
-     * @param classLoader
      */
     private void getSupportIme(ClassLoader classLoader) {
         try {

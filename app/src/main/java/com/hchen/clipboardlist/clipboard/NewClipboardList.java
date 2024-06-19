@@ -86,6 +86,8 @@ public class NewClipboardList extends BaseHC {
 
     private void newMethod() {
         isNew = true;
+        setStaticField(findClass("com.miui.inputmethod.MiuiClipboardManager"),
+                "MAX_CLIP_CONTENT_SIZE", Integer.MAX_VALUE);
         classTool.findClass("mcm", "com.miui.inputmethod.MiuiClipboardManager")
                 .getMethod("addClipDataToPhrase", Context.class, InputMethodService.class,
                         "com.miui.inputmethod.ClipboardContentModel")
@@ -151,10 +153,11 @@ public class NewClipboardList extends BaseHC {
         if (readData.isEmpty()) {
             logW(TAG, "can't read any data!");
         } else {
-            if (readData.stream().noneMatch(contentModel -> contentModel.content.equals(add))) {
-                readData.add(0, new ContentModel(add, type, System.currentTimeMillis()));
-                FileHelper.write(dataPath, gson.toJson(readData));
+            if (readData.stream().anyMatch(contentModel -> contentModel.content.equals(add))) {
+                readData.removeIf(contentModel -> contentModel.content.equals(add));
             }
+            readData.add(0, new ContentModel(add, type, System.currentTimeMillis()));
+            FileHelper.write(dataPath, gson.toJson(readData));
         }
         // param.setResult(toClipboardList(dataList));
     }
