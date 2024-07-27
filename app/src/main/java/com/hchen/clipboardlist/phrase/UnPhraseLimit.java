@@ -29,7 +29,6 @@ import android.widget.EditText;
 
 import com.hchen.hooktool.BaseHC;
 import com.hchen.hooktool.callback.IAction;
-import com.hchen.hooktool.tool.ParamTool;
 
 import org.luckypray.dexkit.DexKitBridge;
 import org.luckypray.dexkit.query.FindField;
@@ -55,33 +54,29 @@ public class UnPhraseLimit extends BaseHC {
             // 解除 20 条限制
             Class<?> InputMethodUtil = findClass("com.miui.inputmethod.InputMethodUtil");
             setStaticField(InputMethodUtil, "sPhraseListSize", 0);
-            classTool.add("imu", InputMethodUtil)
-                    .getMethod("queryPhrase", Context.class)
-                    .hook(new IAction() {
-                        @Override
-                        public void after(ParamTool param) throws Throwable {
-                            setStaticField(InputMethodUtil, "sPhraseListSize", 0);
-                        }
-                    });
+            hook(InputMethodUtil, "queryPhrase", Context.class, new IAction() {
+                @Override
+                public void after() throws Throwable {
+                    setStaticField(InputMethodUtil, "sPhraseListSize", 0);
+                }
+            });
 
             Class<?> AddPhraseActivity = findClass("com.miui.phrase.AddPhraseActivity");
-            classTool.findClass("pea", "com.miui.phrase.PhraseEditActivity")
-                    .getMethod("onClick", View.class)
-                    .hook(new IAction() {
-                        @Override
-                        public void before(ParamTool param) throws Throwable {
-                            Activity activity = param.thisObject();
-                            View view = param.first();
-                            int id = activity.getResources().getIdentifier("fab", "id", "com.miui.phrase");
-                            if (view.getId() == id) {
-                                Intent intent = new Intent(activity, AddPhraseActivity);
-                                intent.setAction("com.miui.intent.action.PHRASE_ADD");
-                                activity.startActivityForResult(intent, 0);
-                                param.setResult(null);
-                            }
-                        }
-                    });
-
+            hook("com.miui.phrase.PhraseEditActivity", "onClick", View.class, new IAction() {
+                @Override
+                public void before() throws Throwable {
+                    Activity activity = thisObject();
+                    View view = first();
+                    int id = activity.getResources().getIdentifier("fab", "id", "com.miui.phrase");
+                    if (view.getId() == id) {
+                        Intent intent = new Intent(activity, AddPhraseActivity);
+                        intent.setAction("com.miui.intent.action.PHRASE_ADD");
+                        activity.startActivityForResult(intent, 0);
+                        returnNull();
+                    }
+                }
+            });
+            
             // 解除字数限制
             MethodData methodData1 = dexKitBridge.findMethod(FindMethod.create()
                     .matcher(MethodMatcher.create()
@@ -102,8 +97,8 @@ public class UnPhraseLimit extends BaseHC {
             Field f = fieldData.getFieldInstance(lpparam.classLoader);
             hook(methodData1.getMethodInstance(lpparam.classLoader), new IAction() {
                 @Override
-                public void after(ParamTool param) throws Throwable {
-                    EditText editText = (EditText) f.get(param.thisObject());
+                public void after() throws Throwable {
+                    EditText editText = (EditText) f.get(thisObject());
                     editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Integer.MAX_VALUE)});
                 }
             });

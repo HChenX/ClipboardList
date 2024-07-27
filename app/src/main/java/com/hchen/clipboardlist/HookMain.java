@@ -39,6 +39,7 @@ import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class HookMain implements IXposedHookLoadPackage {
+    public static String TAG = "ClipboardList";
     public static List<String> mAppsUsingInputMethod = new ArrayList<>();
 
     @Override
@@ -47,10 +48,10 @@ public class HookMain implements IXposedHookLoadPackage {
             mAppsUsingInputMethod = getAppsUsingInputMethod(ContextUtils.getContext(ContextUtils.FLAG_ALL));
         }
         String pkg = lpparam.packageName;
-        HCInit.setTAG("ClipboardList");
-        HCInit.setLogLevel(HCInit.LOG_D);
+        HCInit.initBasicData(BuildConfig.APPLICATION_ID,
+                "ClipboardList", HCInit.LOG_D);
+        HCInit.initLoadPackageParam(lpparam);
         if (lpparam.packageName.equals("com.miui.phrase")) {
-            HCInit.initLoadPackageParam(lpparam);
             System.loadLibrary("dexkit");
             DexKitBridge dexKitBridge = DexKitBridge.create(lpparam.appInfo.sourceDir);
             new UnPhraseLimit(dexKitBridge).onCreate();
@@ -58,12 +59,11 @@ public class HookMain implements IXposedHookLoadPackage {
             return;
         }
         if (isInputMethod(pkg)) {
-            HCInit.initLoadPackageParam(lpparam);
             new NewClipboardList().onCreate();
             new UnlockIme().onCreate();
         }
     }
-
+    
     private List<String> getAppsUsingInputMethod(Context context) {
         try {
             if (context == null) {

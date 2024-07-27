@@ -22,7 +22,6 @@ import static com.hchen.hooktool.log.XposedLog.logE;
 
 import com.hchen.hooktool.BaseHC;
 import com.hchen.hooktool.callback.IAction;
-import com.hchen.hooktool.tool.ParamTool;
 import com.hchen.hooktool.utils.PropUtils;
 
 import java.util.Arrays;
@@ -60,20 +59,17 @@ public class UnlockIme extends BaseHC {
             logE(TAG, "Class not found: InputMethodServiceInjector");
         }
 
-        hookDeleteNotSupportIme("android.inputmethodservice.InputMethodServiceInjector$MiuiSwitchInputMethodListener",
-                lpparam.classLoader);
+        hookDeleteNotSupportIme("android.inputmethodservice.InputMethodServiceInjector$MiuiSwitchInputMethodListener", classLoader);
 
         // 获取常用语的ClassLoader
-        classTool.findClass("immm", "android.inputmethodservice.InputMethodModuleManager")
-                .getMethod("loadDex", ClassLoader.class, String.class)
-                .hook(new IAction() {
+        hook("android.inputmethodservice.InputMethodModuleManager",
+                "loadDex", ClassLoader.class, String.class,
+                new IAction() {
                     @Override
-                    public void after(ParamTool param) {
-                        getSupportIme(param.first());
-                        hookDeleteNotSupportIme("com.miui.inputmethod.InputMethodBottomManager$MiuiSwitchInputMethodListener",
-                                param.first());
-                        Class<?> InputMethodBottomManager = findClass("com.miui.inputmethod.InputMethodBottomManager",
-                                param.first());
+                    public void after() throws Throwable {
+                        getSupportIme(first());
+                        hookDeleteNotSupportIme("com.miui.inputmethod.InputMethodBottomManager$MiuiSwitchInputMethodListener", first());
+                        Class<?> InputMethodBottomManager = findClass("com.miui.inputmethod.InputMethodBottomManager", first());
                         if (InputMethodBottomManager != null) {
                             hookSIsImeSupport(InputMethodBottomManager);
                             hookIsXiaoAiEnable(InputMethodBottomManager);
@@ -81,7 +77,8 @@ public class UnlockIme extends BaseHC {
                             logE(TAG, "Class not found: com.miui.inputmethod.InputMethodBottomManager");
                         }
                     }
-                });
+                }
+        );
     }
 
     /**
@@ -100,7 +97,7 @@ public class UnlockIme extends BaseHC {
      */
     private void hookIsXiaoAiEnable(Class<?> clazz) {
         try {
-            hook(findAnyMethod(clazz, "isXiaoAiEnable"), returnResult(false));
+            hookAll(clazz, "isXiaoAiEnable", returnResult(false));
         } catch (Throwable throwable) {
             logE(TAG, "Hook method isXiaoAiEnable: " + throwable);
         }
@@ -111,22 +108,21 @@ public class UnlockIme extends BaseHC {
      */
     private void setPhraseBgColor(Class<?> clazz) {
         try {
-            classTool.findClass("pw", "com.android.internal.policy.PhoneWindow")
-                    .getMethod("setNavigationBarColor", int.class)
-                    .hook(new IAction() {
+            hook("com.android.internal.policy.PhoneWindow",
+                    "setNavigationBarColor", int.class,
+                    new IAction() {
                         @Override
-                        public void after(ParamTool param) {
-                            if ((int) param.first() == 0) return;
-                            navBarColor = param.first();
+                        public void after() throws Throwable {
+                            if ((int) first() == 0) return;
+                            navBarColor = first();
                             customizeBottomViewColor(clazz);
                         }
                     });
 
-
-            hook(findAnyMethod(clazz, "addMiuiBottomView"),
+            hook(clazz, "addMiuiBottomView",
                     new IAction() {
                         @Override
-                        public void after(ParamTool param) {
+                        public void after() {
                             customizeBottomViewColor(clazz);
                         }
                     });
@@ -142,7 +138,7 @@ public class UnlockIme extends BaseHC {
         try {
             if (navBarColor != 0) {
                 int color = -0x1 - navBarColor;
-                callStaticMethod(clazz, "customizeBottomViewColor", new Object[]{true, navBarColor, color | -0x1000000, color | 0x66000000});
+                callStaticMethod(clazz, "customizeBottomViewColor", true, navBarColor, color | -0x1000000, color | 0x66000000);
             }
         } catch (Throwable e) {
             logE(TAG, "Call customizeBottomViewColor: " + e);
@@ -154,8 +150,7 @@ public class UnlockIme extends BaseHC {
      */
     private void hookDeleteNotSupportIme(String className, ClassLoader classLoader) {
         try {
-            hook(findAnyMethod(findClass(className, classLoader), "deleteNotSupportIme"),
-                    doNothing());
+            hookAll(className, classLoader, "deleteNotSupportIme", doNothing());
         } catch (Throwable throwable) {
             logE(TAG, "Hook method deleteNotSupportIme: " + throwable);
         }
@@ -166,15 +161,14 @@ public class UnlockIme extends BaseHC {
      */
     private void getSupportIme(ClassLoader classLoader) {
         try {
-            classTool.findClass("imbm", "com.miui.inputmethod.InputMethodBottomManager", classLoader)
-                    .getMethod("getSupportIme")
-                    .hook(new IAction() {
+            hook("com.miui.inputmethod.InputMethodBottomManager", classLoader, "getSupportIme",
+                    new IAction() {
                         @Override
-                        public void before(ParamTool param) {
+                        public void before() throws Throwable {
                             List<?> getEnabledInputMethodList = callMethod(getField(getStaticField(
-                                    findClass("com.miui.inputmethod.InputMethodBottomManager", classLoader),
+                                    "com.miui.inputmethod.InputMethodBottomManager", classLoader,
                                     "sBottomViewHelper"), "mImm"), "getEnabledInputMethodList");
-                            param.setResult(getEnabledInputMethodList);
+                            setResult(getEnabledInputMethodList);
                         }
                     });
         } catch (Throwable e) {

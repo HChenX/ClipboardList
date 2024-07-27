@@ -42,102 +42,120 @@ import java.util.stream.Collectors;
 public class NewClipboardList extends BaseHC {
     private static String dataPath;
     private Gson gson;
+    private boolean isHooked = false;
     private boolean isNew = false;
 
     @Override
     public void init() {
         gson = new GsonBuilder().setPrettyPrinting().create();
-        hcHook.findClass("immm", "android.inputmethodservice.InputMethodModuleManager")
-                .getMethod("loadDex", ClassLoader.class, String.class)
-                .hook(new IAction() {
+        hook("android.inputmethodservice.InputMethodModuleManager",
+                "loadDex", ClassLoader.class, String.class,
+                new IAction() {
                     @Override
-                    public void after(ParamTool param) {
-                        dataPath = lpparam.appInfo.dataDir + "/files/clipboard_data.dat";
+                    public void after() throws Throwable {
+                        if (!isHooked) {
+                            dataPath = lpparam.appInfo.dataDir + "/files/clipboard_data.dat";
+                            logI(TAG, "class loader: " + first());
 
-                        hcHook.setClassLoader(param.first());
-                        logI(TAG, "class loader: " + param.first());
-                        classTool.findClass("ccm",
-                                "com.miui.inputmethod.ClipboardContentModel");
-                        ContentModel.classTool = classTool;
-                        ContentModel.expandTool = expandTool;
-                        FileHelper.TAG = TAG;
-                        if (!FileHelper.exists(dataPath)) {
-                            logE(TAG, "file create failed!");
-                            return;
+                            FileHelper.TAG = TAG;
+                            if (!FileHelper.exists(dataPath)) {
+                                logE(TAG, "file create failed!");
+                                return;
+                            }
+                            oldMethod(first());
+                            isHooked = true;
                         }
-                        oldMethod();
                     }
                 });
     }
 
-    private void oldMethod() {
-        if (!findClassIfExists("com.miui.inputmethod.MiuiClipboardManager")) {
-            classTool.findClass("imu", "com.miui.inputmethod.InputMethodUtil")
-                    .getMethod("getClipboardData", Context.class)
-                    .hook(new IAction() {
-                        @Override
-                        public void before(ParamTool param) {
-                            getClipboardData(param);
-                        }
-                    })
+    private void oldMethod(ClassLoader classLoader) {
+        ContentModel.baseHC = this;
+        ContentModel.classLoader = classLoader;
+        if (!existsClass("com.miui.inputmethod.MiuiClipboardManager", classLoader)) {
+            chain("com.miui.inputmethod.InputMethodUtil", classLoader,
+                    method("getClipboardData", Context.class)
+                            .hook(new IAction() {
+                                @Override
+                                public void before() throws Throwable {
+                                    getClipboardData(paramTool);
+                                }
+                            })
 
-                    .getMethod("addClipboard", String.class, String.class, int.class, Context.class)
-                    .hook(new IAction() {
-                        @Override
-                        public void before(ParamTool param) {
-                            addClipboard(param.second(), param.third(), param.fourth());
-                            param.setResult(null);
-                        }
-                    })
+                            .method("addClipboard", String.class, String.class, int.class, Context.class)
+                            .hook(new IAction() {
+                                @Override
+                                public void before() throws Throwable {
+                                    addClipboard(second(), third(), fourth());
+                                    returnNull();
+                                }
+                            })
 
-                    .getMethod("setClipboardModelList", Context.class, ArrayList.class)
-                    .hook(new IAction() {
-                        @Override
-                        public void before(ParamTool param) {
-                            ArrayList<?> dataList = param.second();
-                            FileHelper.write(dataPath, gson.toJson(dataList));
-                            if (!dataList.isEmpty()) param.setResult(null);
-                        }
-                    });
-        } else newMethod();
+                            .method("setClipboardModelList", Context.class, ArrayList.class)
+                            .hook(new IAction() {
+                                @Override
+                                public void before() throws Throwable {
+                                    ArrayList<?> dataList = second();
+                                    FileHelper.write(dataPath, gson.toJson(dataList));
+                                    if (!dataList.isEmpty()) returnNull();
+                                }
+                            })
+            );
+        } else newMethod(classLoader);
     }
 
-    private void newMethod() {
+    private void newMethod(ClassLoader classLoader) {
         isNew = true;
-        setStaticField(findClass("com.miui.inputmethod.MiuiClipboardManager"),
+        setStaticField("com.miui.inputmethod.MiuiClipboardManager", classLoader,
                 "MAX_CLIP_CONTENT_SIZE", Integer.MAX_VALUE);
-        classTool.findClass("mcm", "com.miui.inputmethod.MiuiClipboardManager")
-                .getMethod("addClipDataToPhrase", Context.class, InputMethodService.class,
-                        "com.miui.inputmethod.ClipboardContentModel")
-                .hook(new IAction() {
-                    @Override
-                    public void before(ParamTool param) {
-                        Object clipboardContentModel = param.third();
-                        String content = ContentModel.getContent(clipboardContentModel);
-                        int type = ContentModel.getType(clipboardContentModel);
-                        // long time = ContentModel.getTime(clipboardContentModel);
-                        addClipboard(content, type, param.first());
-                        param.setResult(null);
-                    }
-                })
 
-                .getMethod("getClipboardData", Context.class)
-                .hook(new IAction() {
+        hook("com.miui.inputmethod.MiuiClipboardManager", classLoader,
+                "commitClipDataAndTrack", Context.class, InputMethodService.class,
+                "com.miui.inputmethod.ClipboardContentModel", int.class,
+                new IAction() {
                     @Override
-                    public void before(ParamTool param) {
-                        getClipboardData(param);
-                    }
-                })
-
-                .getMethod("setClipboardModelList", Context.class, ArrayList.class)
-                .hook(new IAction() {
-                    @Override
-                    public void before(ParamTool param) {
-                        ArrayList<?> dataList = param.second();
-                        FileHelper.write(dataPath, gson.toJson(dataList));
-                        if (!dataList.isEmpty()) param.setResult(null);
+                    public void before() throws Throwable {
+                        // observeCall();
+                        int type = fourth();
+                        if (type == 3 || type == 2) {
+                            fourth(10);
+                        }
                     }
                 });
+
+        chain("com.miui.inputmethod.MiuiClipboardManager", classLoader,
+                method("addClipDataToPhrase", Context.class, InputMethodService.class,
+                        "com.miui.inputmethod.ClipboardContentModel")
+                        .hook(new IAction() {
+                            @Override
+                            public void before() throws Throwable {
+                                Object clipboardContentModel = third();
+                                String content = ContentModel.getContent(clipboardContentModel);
+                                int type = ContentModel.getType(clipboardContentModel);
+                                // long time = ContentModel.getTime(clipboardContentModel);
+                                addClipboard(content, type, first());
+                                returnNull();
+                            }
+                        })
+
+                        .method("getClipboardData", Context.class)
+                        .hook(new IAction() {
+                            @Override
+                            public void before() throws Throwable {
+                                getClipboardData(paramTool);
+                            }
+                        })
+
+                        .method("setClipboardModelList", Context.class, ArrayList.class)
+                        .hook(new IAction() {
+                            @Override
+                            public void before() throws Throwable {
+                                ArrayList<?> dataList = second();
+                                FileHelper.write(dataPath, gson.toJson(dataList));
+                                if (!dataList.isEmpty()) returnNull();
+                            }
+                        })
+        );
     }
 
     private void getClipboardData(ParamTool param) {
