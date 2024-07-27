@@ -63,7 +63,7 @@ public class HookMain implements IXposedHookLoadPackage {
             new UnlockIme().onCreate();
         }
     }
-    
+
     private List<String> getAppsUsingInputMethod(Context context) {
         try {
             if (context == null) {
