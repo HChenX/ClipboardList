@@ -22,10 +22,12 @@ import static com.hchen.hooktool.log.XposedLog.logE;
 import static com.hchen.hooktool.log.XposedLog.logI;
 import static com.hchen.hooktool.log.XposedLog.logW;
 
+import android.content.ClipData;
 import android.content.Context;
 import android.inputmethodservice.InputMethodService;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -104,24 +106,13 @@ public class NewClipboardList extends BaseHC {
         } else newMethod(classLoader);
     }
 
+    private String text = null;
+    private int max = -1;
+
     private void newMethod(ClassLoader classLoader) {
         isNew = true;
-        setStaticField("com.miui.inputmethod.MiuiClipboardManager", classLoader,
-                "MAX_CLIP_CONTENT_SIZE", Integer.MAX_VALUE);
-
-        hook("com.miui.inputmethod.MiuiClipboardManager", classLoader,
-                "commitClipDataAndTrack", Context.class, InputMethodService.class,
-                "com.miui.inputmethod.ClipboardContentModel", int.class,
-                new IAction() {
-                    @Override
-                    public void before() throws Throwable {
-                        // observeCall();
-                        int type = fourth();
-                        if (type == 3 || type == 2) {
-                            fourth(10);
-                        }
-                    }
-                });
+        /*setStaticField("com.miui.inputmethod.MiuiClipboardManager", classLoader,
+                "MAX_CLIP_CONTENT_SIZE", Integer.MAX_VALUE);*/
 
         chain("com.miui.inputmethod.MiuiClipboardManager", classLoader,
                 method("addClipDataToPhrase", Context.class, InputMethodService.class,
@@ -155,7 +146,48 @@ public class NewClipboardList extends BaseHC {
                                 if (!dataList.isEmpty()) returnNull();
                             }
                         })
+
+                        .method("commitClipDataAndTrack", Context.class, InputMethodService.class,
+                                "com.miui.inputmethod.ClipboardContentModel", int.class)
+                        .hook(new IAction() {
+                            @Override
+                            public void before() throws Throwable {
+                                int type = fourth();
+                                if (type == 3 || type == 2) {
+                                    fourth(10);
+                                }
+                            }
+                        })
+
+                        .method("processSingleItemOfClipData", ClipData.class, String.class)
+                        .hook(new IAction() {
+                            @Override
+                            public void before() throws Throwable {
+                                ClipData clipData = first();
+                                ClipData.Item item = clipData.getItemAt(0);
+                                if (item.getText() != null && !TextUtils.isEmpty(item.getText().toString())) {
+                                    text = item.getText().toString();
+                                }
+                            }
+                        })
+
+                        .method("buildClipDataItemModelBasedTextData", String.class)
+                        .hook(new IAction() {
+                            @Override
+                            public void before() throws Throwable {
+                                if (max == -1)
+                                    max = getStaticField("com.miui.inputmethod.MiuiClipboardManager", classLoader,
+                                            "MAX_CLIP_CONTENT_SIZE");
+                                if (max == -1) max = 5000;
+                                String string = first();
+                                if (string.length() == max) {
+                                    if (text != null) first(text);
+                                }
+                                text = null;
+                            }
+                        })
         );
+
     }
 
     private void getClipboardData(ParamTool param) {
