@@ -44,9 +44,9 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
 
     @Override
     public void load(ClassLoader classLoader) {
-        if (!shouldHook) return;
         fakeSupportImeList(classLoader);
         notDeleteNotSupportIme("com.miui.inputmethod.InputMethodBottomManager$MiuiSwitchInputMethodListener", classLoader);
+        if (!shouldHook) return;
         Class<?> InputMethodBottomManager = findClass("com.miui.inputmethod.InputMethodBottomManager", classLoader).get();
         if (InputMethodBottomManager != null) {
             fakeIsSupportIme(InputMethodBottomManager);
@@ -147,10 +147,10 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
                 new IAction() {
                     @Override
                     public void before() {
-                        List<?> getEnabledInputMethodList = callMethod(getField(getStaticField(
+                        List<?> mEnabledInputMethodList = callMethod(getField(getStaticField(
                                 "com.miui.inputmethod.InputMethodBottomManager", classLoader,
                                 "sBottomViewHelper"), "mImm"), "getEnabledInputMethodList");
-                        setResult(getEnabledInputMethodList);
+                        setResult(mEnabledInputMethodList);
                     }
                 }
         );
