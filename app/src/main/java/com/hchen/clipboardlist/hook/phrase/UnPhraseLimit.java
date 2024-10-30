@@ -16,7 +16,7 @@
 
  * Copyright (C) 2023-2024 ClipboardList Contributions
  */
-package com.hchen.clipboardlist.phrase;
+package com.hchen.clipboardlist.hook.phrase;
 
 import static com.hchen.hooktool.log.XposedLog.logE;
 
@@ -28,7 +28,7 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.hchen.hooktool.BaseHC;
-import com.hchen.hooktool.callback.IAction;
+import com.hchen.hooktool.hook.IAction;
 
 import org.luckypray.dexkit.DexKitBridge;
 import org.luckypray.dexkit.query.FindField;
@@ -41,6 +41,11 @@ import org.luckypray.dexkit.result.MethodData;
 
 import java.lang.reflect.Field;
 
+/**
+ * 解除常用语 20 条限制和字数限制
+ *
+ * @author 焕晨HChen
+ */
 public class UnPhraseLimit extends BaseHC {
     private final DexKitBridge dexKitBridge;
 
@@ -52,19 +57,19 @@ public class UnPhraseLimit extends BaseHC {
     public void init() {
         try {
             // 解除 20 条限制
-            Class<?> InputMethodUtil = findClass("com.miui.inputmethod.InputMethodUtil");
+            Class<?> InputMethodUtil = findClass("com.miui.inputmethod.InputMethodUtil").get();
             setStaticField(InputMethodUtil, "sPhraseListSize", 0);
-            hook(InputMethodUtil, "queryPhrase", Context.class, new IAction() {
+            hookMethod(InputMethodUtil, "queryPhrase", Context.class, new IAction() {
                 @Override
-                public void after() throws Throwable {
+                public void after() {
                     setStaticField(InputMethodUtil, "sPhraseListSize", 0);
                 }
             });
 
-            Class<?> AddPhraseActivity = findClass("com.miui.phrase.AddPhraseActivity");
-            hook("com.miui.phrase.PhraseEditActivity", "onClick", View.class, new IAction() {
+            Class<?> AddPhraseActivity = findClass("com.miui.phrase.AddPhraseActivity").get();
+            hookMethod("com.miui.phrase.PhraseEditActivity", "onClick", View.class, new IAction() {
                 @Override
-                public void before() throws Throwable {
+                public void before() {
                     Activity activity = thisObject();
                     View view = first();
                     int id = activity.getResources().getIdentifier("fab", "id", "com.miui.phrase");
@@ -97,8 +102,8 @@ public class UnPhraseLimit extends BaseHC {
             Field f = fieldData.getFieldInstance(lpparam.classLoader);
             hook(methodData1.getMethodInstance(lpparam.classLoader), new IAction() {
                 @Override
-                public void after() throws Throwable {
-                    EditText editText = (EditText) f.get(thisObject());
+                public void after() {
+                    EditText editText = getField(thisObject(), f);
                     editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Integer.MAX_VALUE)});
                 }
             });

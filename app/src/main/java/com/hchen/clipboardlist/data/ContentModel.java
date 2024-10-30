@@ -18,14 +18,20 @@
  */
 package com.hchen.clipboardlist.data;
 
-import com.hchen.hooktool.BaseHC;
+import com.hchen.hooktool.tool.CoreTool;
 
 public class ContentModel {
-    public static BaseHC baseHC;
     public static ClassLoader classLoader;
     public String content;
     public long time;
     public int type;
+    public String determineContent;
+    public String deviceId;
+    public String deviceName;
+    public String deviceType;
+    public boolean isAcrossDevices;
+    public boolean isShow = true;
+    public boolean isTemp;
 
     public ContentModel(String content, int type, long time) {
         this.content = content;
@@ -34,31 +40,31 @@ public class ContentModel {
     }
 
     public static Object createContentModel(String content, int type, long time) {
-        return baseHC.newInstance("com.miui.inputmethod.ClipboardContentModel", classLoader,
+        return CoreTool.newInstance("com.miui.inputmethod.ClipboardContentModel", classLoader,
                 content, type, time);
     }
 
     public static boolean putContent(Object data, String content) {
-        return baseHC.setField(data, "content", content);
+        return CoreTool.setField(data, "content", content);
     }
 
     public static boolean putType(Object data, int type) {
-        return baseHC.setField(data, "type", type);
+        return CoreTool.setField(data, "type", type);
     }
 
     public static boolean putTime(Object data, long time) {
-        return baseHC.setField(data, "time", time);
+        return CoreTool.setField(data, "time", time);
     }
 
     public static String getContent(Object data) {
-        return baseHC.getField(data, "content");
+        return CoreTool.getField(data, "content");
     }
 
     public static int getType(Object data) {
-        return baseHC.getField(data, "type");
+        return CoreTool.getField(data, "type");
     }
 
     public static long getTime(Object data) {
-        return baseHC.getField(data, "time");
+        return CoreTool.getField(data, "time");
     }
 }

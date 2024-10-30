@@ -30,8 +30,8 @@ android {
         minSdk 30
         targetSdk 34
         //noinspection HighAppVersionCode
-        versionCode 2024072800
-        versionName "3.2"
+        versionCode 2024103000
+        versionName "3.3"
 
         signingConfig signingConfigs.release
     }
@@ -75,11 +75,9 @@ android {
 }
 
 dependencies {
-
-    /*Xposed*/
     compileOnly 'de.robv.android.xposed:api:82'
-//    implementation 'io.github.hchenx:hooktool:0.9.9.7'
+    implementation 'com.github.HChenX:HookTool:v.1.0.5'
     implementation 'com.google.code.gson:gson:2.11.0'
     implementation 'org.luckypray:dexkit:2.0.2'
-    implementation 'androidx.annotation:annotation-jvm:1.8.1'
+    implementation 'androidx.annotation:annotation:1.9.0'
 }

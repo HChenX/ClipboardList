@@ -24,11 +24,12 @@ import android.content.Context;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 
-import com.hchen.clipboardlist.clipboard.NewClipboardList;
-import com.hchen.clipboardlist.phrase.UnPhraseLimit;
-import com.hchen.clipboardlist.unlockIme.UnlockIme;
+import com.hchen.clipboardlist.hook.LoadInputMethodDex;
+import com.hchen.clipboardlist.hook.clipboard.NewClipboardList;
+import com.hchen.clipboardlist.hook.phrase.UnPhraseLimit;
+import com.hchen.clipboardlist.hook.unlockIme.UnlockIme;
 import com.hchen.hooktool.HCInit;
-import com.hchen.hooktool.utils.ContextUtils;
+import com.hchen.hooktool.tool.additional.ContextTool;
 
 import org.luckypray.dexkit.DexKitBridge;
 
@@ -45,22 +46,28 @@ public class HookMain implements IXposedHookLoadPackage {
     @Override
     public void handleLoadPackage(LoadPackageParam lpparam) {
         if (mAppsUsingInputMethod.isEmpty()) {
-            mAppsUsingInputMethod = getAppsUsingInputMethod(ContextUtils.getContext(ContextUtils.FLAG_ALL));
+            mAppsUsingInputMethod = getAppsUsingInputMethod(ContextTool.getContext(ContextTool.FLAG_ALL));
         }
         String pkg = lpparam.packageName;
-        HCInit.initBasicData(BuildConfig.APPLICATION_ID,
-                "ClipboardList", HCInit.LOG_D);
         HCInit.initLoadPackageParam(lpparam);
+        HCInit.initBasicData(new HCInit.BasicData()
+                .setLogLevel(HCInit.LOG_D)
+                .setTag(TAG)
+        );
+        HCInit.useLogExpand(new String[]{
+                "com.hchen.clipboardlist.hook"
+        });
         if (lpparam.packageName.equals("com.miui.phrase")) {
             System.loadLibrary("dexkit");
             DexKitBridge dexKitBridge = DexKitBridge.create(lpparam.appInfo.sourceDir);
-            new UnPhraseLimit(dexKitBridge).onCreate();
+            new UnPhraseLimit(dexKitBridge).onLoadPackage();
             dexKitBridge.close();
             return;
         }
         if (isInputMethod(pkg)) {
-            new NewClipboardList().onCreate();
-            new UnlockIme().onCreate();
+            UnlockIme unlockIme = new UnlockIme();
+            unlockIme.onLoadPackage();
+            new LoadInputMethodDex(new NewClipboardList(), unlockIme).onLoadPackage();
         }
     }
 
