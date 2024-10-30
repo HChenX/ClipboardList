@@ -51,6 +51,7 @@ public class HookMain implements IXposedHookLoadPackage {
         String pkg = lpparam.packageName;
         HCInit.initLoadPackageParam(lpparam);
         HCInit.initBasicData(new HCInit.BasicData()
+                .setModulePackageName(BuildConfig.APPLICATION_ID)
                 .setLogLevel(HCInit.LOG_D)
                 .setTag(TAG)
         );

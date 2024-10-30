@@ -114,7 +114,7 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
 
     private void newMethod(ClassLoader classLoader) {
         isNewMode = true;
-        setStaticField("com.miui.inputmethod.MiuiClipboardManager", "MAX_CLIP_DATA_ITEM_SIZE", Integer.MAX_VALUE);
+        setStaticField("com.miui.inputmethod.MiuiClipboardManager", classLoader, "MAX_CLIP_DATA_ITEM_SIZE", Integer.MAX_VALUE);
         chain("com.miui.inputmethod.MiuiClipboardManager", classLoader,
                 anyMethod("addClipDataToPhrase") // 添加剪贴板条目
                         .hook(new IAction() {
