@@ -19,7 +19,7 @@
 package com.hchen.clipboardlist.hook;
 
 import com.hchen.hooktool.BaseHC;
-import com.hchen.hooktool.hook.IAction;
+import com.hchen.hooktool.hook.IHook;
 
 import java.util.Arrays;
 
@@ -40,11 +40,11 @@ public class LoadInputMethodDex extends BaseHC {
     public void init() {
         hookMethod("android.inputmethodservice.InputMethodModuleManager",
                 "loadDex", ClassLoader.class, String.class,
-                new IAction() {
+                new IHook() {
                     @Override
                     public void after() {
                         if (isHooked) return;
-                        Arrays.stream(mOnInputMethodDexLoad).forEach(load -> load.load(first()));
+                        Arrays.stream(mOnInputMethodDexLoad).forEach(load -> load.load(getArgs(0)));
                         isHooked = true;
                     }
                 }

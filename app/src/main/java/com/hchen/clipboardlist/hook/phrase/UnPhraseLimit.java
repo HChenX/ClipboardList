@@ -28,7 +28,7 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.hchen.hooktool.BaseHC;
-import com.hchen.hooktool.hook.IAction;
+import com.hchen.hooktool.hook.IHook;
 
 import org.luckypray.dexkit.DexKitBridge;
 import org.luckypray.dexkit.query.FindField;
@@ -59,7 +59,7 @@ public class UnPhraseLimit extends BaseHC {
             // 解除 20 条限制
             Class<?> InputMethodUtil = findClass("com.miui.inputmethod.InputMethodUtil").get();
             setStaticField(InputMethodUtil, "sPhraseListSize", 0);
-            hookMethod(InputMethodUtil, "queryPhrase", Context.class, new IAction() {
+            hookMethod(InputMethodUtil, "queryPhrase", Context.class, new IHook() {
                 @Override
                 public void after() {
                     setStaticField(InputMethodUtil, "sPhraseListSize", 0);
@@ -67,11 +67,11 @@ public class UnPhraseLimit extends BaseHC {
             });
 
             Class<?> AddPhraseActivity = findClass("com.miui.phrase.AddPhraseActivity").get();
-            hookMethod("com.miui.phrase.PhraseEditActivity", "onClick", View.class, new IAction() {
+            hookMethod("com.miui.phrase.PhraseEditActivity", "onClick", View.class, new IHook() {
                 @Override
                 public void before() {
                     Activity activity = thisObject();
-                    View view = first();
+                    View view = getArgs(0);
                     int id = activity.getResources().getIdentifier("fab", "id", "com.miui.phrase");
                     if (view.getId() == id) {
                         Intent intent = new Intent(activity, AddPhraseActivity);
@@ -100,7 +100,7 @@ public class UnPhraseLimit extends BaseHC {
                     )
             ).singleOrThrow(() -> new RuntimeException("field is null!!"));
             Field f = fieldData.getFieldInstance(lpparam.classLoader);
-            hook(methodData1.getMethodInstance(lpparam.classLoader), new IAction() {
+            hook(methodData1.getMethodInstance(lpparam.classLoader), new IHook() {
                 @Override
                 public void after() {
                     EditText editText = getField(thisObject(), f);

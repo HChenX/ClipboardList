@@ -35,7 +35,7 @@ import com.hchen.clipboardlist.data.ContentModel;
 import com.hchen.clipboardlist.file.FileHelper;
 import com.hchen.clipboardlist.hook.LoadInputMethodDex;
 import com.hchen.hooktool.BaseHC;
-import com.hchen.hooktool.hook.IAction;
+import com.hchen.hooktool.hook.IHook;
 import com.hchen.hooktool.tool.ParamTool;
 
 import java.util.ArrayList;
@@ -81,7 +81,7 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
     private void oldMethod(ClassLoader classLoader) {
         chain("com.miui.inputmethod.InputMethodUtil", classLoader,
                 method("getClipboardData", Context.class) // 读取剪贴板数据
-                        .hook(new IAction() {
+                        .hook(new IHook() {
                             @Override
                             public void before() {
                                 getClipboardData(this);
@@ -89,19 +89,19 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
                         })
 
                         .method("addClipboard", String.class, String.class, int.class, Context.class) // 添加剪贴板条目
-                        .hook(new IAction() {
+                        .hook(new IHook() {
                             @Override
                             public void before() {
-                                addClipboard(second(), third(), fourth());
+                                addClipboard(getArgs(1), getArgs(2), getArgs(3));
                                 returnNull();
                             }
                         })
 
                         .method("setClipboardModelList", Context.class, ArrayList.class) // 保存剪贴板数据
-                        .hook(new IAction() {
+                        .hook(new IHook() {
                             @Override
                             public void before() {
-                                ArrayList<?> dataList = second();
+                                ArrayList<?> dataList = getArgs(1);
                                 FileHelper.write(mDataPath, mGson.toJson(dataList));
                                 if (!dataList.isEmpty()) returnNull();
                             }
@@ -117,20 +117,20 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
         setStaticField("com.miui.inputmethod.MiuiClipboardManager", classLoader, "MAX_CLIP_DATA_ITEM_SIZE", Integer.MAX_VALUE);
         chain("com.miui.inputmethod.MiuiClipboardManager", classLoader,
                 anyMethod("addClipDataToPhrase") // 添加剪贴板条目
-                        .hook(new IAction() {
+                        .hook(new IHook() {
                             @Override
                             public void before() {
-                                Object clipboardContentModel = third();
+                                Object clipboardContentModel = getArgs(2);
                                 String content = ContentModel.getContent(clipboardContentModel);
                                 int type = ContentModel.getType(clipboardContentModel);
                                 // long time = ContentModel.getTime(clipboardContentModel);
-                                addClipboard(content, type, first());
+                                addClipboard(content, type, getArgs(0));
                                 returnNull();
                             }
                         })
 
                         .method("getClipboardData", Context.class) // 获取剪贴板数据
-                        .hook(new IAction() {
+                        .hook(new IHook() {
                             @Override
                             public void before() {
                                 getClipboardData(this);
@@ -138,31 +138,31 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
                         })
 
                         .anyMethod("setClipboardModelList") // 保存剪贴板数据
-                        .hook(new IAction() {
+                        .hook(new IHook() {
                             @Override
                             public void before() {
-                                ArrayList<?> dataList = second();
+                                ArrayList<?> dataList = getArgs(1);
                                 FileHelper.write(mDataPath, mGson.toJson(dataList));
                                 if (!dataList.isEmpty()) returnNull();
                             }
                         })
 
                         .anyMethod("commitClipDataAndTrack") // 修复小米的 BUG
-                        .hook(new IAction() {
+                        .hook(new IHook() {
                             @Override
                             public void before() {
-                                int type = fourth();
+                                int type = getArgs(3);
                                 if (type == 3 || type == 2) {
-                                    fourth(10);
+                                    setArgs(3, 10);
                                 }
                             }
                         })
 
                         .method("processSingleItemOfClipData", ClipData.class, String.class) // 解除 5000 字限制
-                        .hook(new IAction() {
+                        .hook(new IHook() {
                             @Override
                             public void before() {
-                                ClipData clipData = first();
+                                ClipData clipData = getArgs(0);
                                 ClipData.Item item = clipData.getItemAt(0);
                                 if (item.getText() != null && !TextUtils.isEmpty(item.getText().toString())) {
                                     mText = item.getText().toString();
@@ -171,16 +171,16 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
                         })
 
                         .method("buildClipDataItemModelBasedTextData", String.class) // 解除 5000 字限制
-                        .hook(new IAction() {
+                        .hook(new IHook() {
                             @Override
                             public void before() {
                                 if (mMax == -1)
                                     mMax = getStaticField("com.miui.inputmethod.MiuiClipboardManager", classLoader,
                                             "MAX_CLIP_CONTENT_SIZE");
                                 if (mMax == -1) mMax = 5000;
-                                String string = first();
+                                String string = getArgs(0);
                                 if (string.length() == mMax) {
-                                    if (mText != null) first(mText);
+                                    if (mText != null) setArgs(0, mText);
                                 }
                                 mText = null;
                             }
@@ -192,7 +192,7 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
     private void getClipboardData(ParamTool param) {
         ArrayList<ContentModel> readData = toContentModelList(FileHelper.read(mDataPath));
         if (readData.isEmpty()) {
-            String data = getData(param.first());
+            String data = getData(param.getArgs(0));
             if (data.isEmpty()) param.setResult(new ArrayList<>());
             ArrayList<ContentModel> contentModels = toContentModelList(data);
             FileHelper.write(mDataPath, mGson.toJson(contentModels));

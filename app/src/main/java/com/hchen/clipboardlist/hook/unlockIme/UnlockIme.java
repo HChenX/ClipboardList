@@ -24,8 +24,8 @@ import android.content.Context;
 
 import com.hchen.clipboardlist.hook.LoadInputMethodDex;
 import com.hchen.hooktool.BaseHC;
-import com.hchen.hooktool.hook.IAction;
-import com.hchen.hooktool.tool.additional.PropTool;
+import com.hchen.hooktool.hook.IHook;
+import com.hchen.hooktool.tool.additional.SystemPropTool;
 
 import java.util.Arrays;
 import java.util.List;
@@ -58,7 +58,7 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
 
     @Override
     public void init() {
-        if (PropTool.getProp("ro.miui.support_miui_ime_bottom", "0").equals("1")) {
+        if (SystemPropTool.getProp("ro.miui.support_miui_ime_bottom", "0").equals("1")) {
             startHook();
         }
     }
@@ -102,18 +102,18 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
     private void setPhraseBgColor(Class<?> clazz) {
         hookMethod("com.android.internal.policy.PhoneWindow",
                 "setNavigationBarColor", int.class,
-                new IAction() {
+                new IHook() {
                     @Override
                     public void after() {
-                        if ((int) first() == 0) return;
-                        navBarColor = first();
+                        if ((int) getArgs(0) == 0) return;
+                        navBarColor = getArgs(0);
                         customizeBottomViewColor(clazz);
                     }
                 }
         );
 
         hookAllMethod(clazz, "addMiuiBottomView",
-                new IAction() {
+                new IHook() {
                     @Override
                     public void after() {
                         customizeBottomViewColor(clazz);
@@ -144,7 +144,7 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
      */
     private void fakeSupportImeList(ClassLoader classLoader) {
         hookMethod("com.miui.inputmethod.InputMethodBottomManager", classLoader, "getSupportIme",
-                new IAction() {
+                new IHook() {
                     @Override
                     public void before() {
                         List<?> mEnabledInputMethodList = callMethod(getField(getStaticField(

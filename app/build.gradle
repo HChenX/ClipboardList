@@ -76,7 +76,7 @@ android {
 
 dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
-    implementation 'com.github.HChenX:HookTool:v.1.0.5'
+    implementation 'com.github.HChenX:HookTool:v.1.0.6'
     implementation 'com.google.code.gson:gson:2.11.0'
     implementation 'org.luckypray:dexkit:2.0.2'
     implementation 'androidx.annotation:annotation:1.9.0'
