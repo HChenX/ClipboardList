@@ -106,7 +106,7 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
                     @Override
                     public void after() {
                         if ((int) getArgs(0) == 0) return;
-                        navBarColor = getArgs(0);
+                        navBarColor = (int) getArgs(0);
                         customizeBottomViewColor(clazz);
                     }
                 }
@@ -147,7 +147,7 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
                 new IHook() {
                     @Override
                     public void before() {
-                        List<?> mEnabledInputMethodList = callMethod(getField(getStaticField(
+                        List<?> mEnabledInputMethodList = (List<?>) callMethod(getField(getStaticField(
                                 "com.miui.inputmethod.InputMethodBottomManager", classLoader,
                                 "sBottomViewHelper"), "mImm"), "getEnabledInputMethodList");
                         setResult(mEnabledInputMethodList);

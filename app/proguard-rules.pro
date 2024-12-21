@@ -24,4 +24,4 @@
 -keep class * extends com.hchen.hooktool.BaseHC
 -keep class com.hchen.clipboardlist.hook.**
 -keep class com.hchen.clipboardlist.hook.**$*
--keep class com.hchen.clipboardlist.data.ContentModel {*;}
+-keep class com.hchen.clipboardlist.hook.contentdata.ContentModel {*;}

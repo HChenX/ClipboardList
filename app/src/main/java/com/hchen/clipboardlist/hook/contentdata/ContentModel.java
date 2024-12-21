@@ -16,7 +16,7 @@
 
  * Copyright (C) 2023-2024 ClipboardList Contributions
  */
-package com.hchen.clipboardlist.data;
+package com.hchen.clipboardlist.hook.contentdata;
 
 import com.hchen.hooktool.tool.CoreTool;
 
@@ -57,14 +57,14 @@ public class ContentModel {
     }
 
     public static String getContent(Object data) {
-        return CoreTool.getField(data, "content");
+        return (String) CoreTool.getField(data, "content");
     }
 
     public static int getType(Object data) {
-        return CoreTool.getField(data, "type");
+        return (int) CoreTool.getField(data, "type");
     }
 
     public static long getTime(Object data) {
-        return CoreTool.getField(data, "time");
+        return (long) CoreTool.getField(data, "time");
     }
 }

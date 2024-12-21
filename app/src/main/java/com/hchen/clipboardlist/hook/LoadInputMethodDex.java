@@ -44,7 +44,7 @@ public class LoadInputMethodDex extends BaseHC {
                     @Override
                     public void after() {
                         if (isHooked) return;
-                        Arrays.stream(mOnInputMethodDexLoad).forEach(load -> load.load(getArgs(0)));
+                        Arrays.stream(mOnInputMethodDexLoad).forEach(load -> load.load((ClassLoader) getArgs(0)));
                         isHooked = true;
                     }
                 }

@@ -70,8 +70,8 @@ public class UnPhraseLimit extends BaseHC {
             hookMethod("com.miui.phrase.PhraseEditActivity", "onClick", View.class, new IHook() {
                 @Override
                 public void before() {
-                    Activity activity = thisObject();
-                    View view = getArgs(0);
+                    Activity activity = (Activity) thisObject();
+                    View view = (View) getArgs(0);
                     int id = activity.getResources().getIdentifier("fab", "id", "com.miui.phrase");
                     if (view.getId() == id) {
                         Intent intent = new Intent(activity, AddPhraseActivity);
@@ -103,7 +103,7 @@ public class UnPhraseLimit extends BaseHC {
             hook(methodData1.getMethodInstance(lpparam.classLoader), new IHook() {
                 @Override
                 public void after() {
-                    EditText editText = getField(thisObject(), f);
+                    EditText editText = (EditText) getField(thisObject(), f);
                     editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Integer.MAX_VALUE)});
                 }
             });

@@ -31,10 +31,11 @@ import android.text.TextUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.hchen.clipboardlist.data.ContentModel;
 import com.hchen.clipboardlist.file.FileHelper;
 import com.hchen.clipboardlist.hook.LoadInputMethodDex;
+import com.hchen.clipboardlist.hook.contentdata.ContentModel;
 import com.hchen.hooktool.BaseHC;
+import com.hchen.hooktool.helper.TryHelper;
 import com.hchen.hooktool.hook.IHook;
 import com.hchen.hooktool.tool.ParamTool;
 
@@ -92,7 +93,7 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
                         .hook(new IHook() {
                             @Override
                             public void before() {
-                                addClipboard(getArgs(1), getArgs(2), getArgs(3));
+                                addClipboard((String) getArgs(1), (Integer) getArgs(2), (Context) getArgs(3));
                                 returnNull();
                             }
                         })
@@ -101,7 +102,7 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
                         .hook(new IHook() {
                             @Override
                             public void before() {
-                                ArrayList<?> dataList = getArgs(1);
+                                ArrayList<?> dataList = (ArrayList<?>) getArgs(1);
                                 FileHelper.write(mDataPath, mGson.toJson(dataList));
                                 if (!dataList.isEmpty()) returnNull();
                             }
@@ -124,8 +125,9 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
                                 String content = ContentModel.getContent(clipboardContentModel);
                                 int type = ContentModel.getType(clipboardContentModel);
                                 // long time = ContentModel.getTime(clipboardContentModel);
-                                addClipboard(content, type, getArgs(0));
+                                addClipboard(content, type, (Context) getArgs(0));
                                 returnNull();
+                                logI(TAG, "addClipDataToPhrase: content: " + content);
                             }
                         })
 
@@ -141,9 +143,10 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
                         .hook(new IHook() {
                             @Override
                             public void before() {
-                                ArrayList<?> dataList = getArgs(1);
+                                ArrayList<?> dataList = (ArrayList<?>) getArgs(1);
                                 FileHelper.write(mDataPath, mGson.toJson(dataList));
                                 if (!dataList.isEmpty()) returnNull();
+                                logI(TAG, "setClipboardModelList!!");
                             }
                         })
 
@@ -151,7 +154,7 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
                         .hook(new IHook() {
                             @Override
                             public void before() {
-                                int type = getArgs(3);
+                                int type = (int) getArgs(3);
                                 if (type == 3 || type == 2) {
                                     setArgs(3, 10);
                                 }
@@ -162,7 +165,7 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
                         .hook(new IHook() {
                             @Override
                             public void before() {
-                                ClipData clipData = getArgs(0);
+                                ClipData clipData = (ClipData) getArgs(0);
                                 ClipData.Item item = clipData.getItemAt(0);
                                 if (item.getText() != null && !TextUtils.isEmpty(item.getText().toString())) {
                                     mText = item.getText().toString();
@@ -175,10 +178,10 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
                             @Override
                             public void before() {
                                 if (mMax == -1)
-                                    mMax = getStaticField("com.miui.inputmethod.MiuiClipboardManager", classLoader,
-                                            "MAX_CLIP_CONTENT_SIZE");
-                                if (mMax == -1) mMax = 5000;
-                                String string = getArgs(0);
+                                    mMax = TryHelper.run(() -> (int) getStaticField("com.miui.inputmethod.MiuiClipboardManager",
+                                            classLoader, "MAX_CLIP_CONTENT_SIZE")).or(5000);
+
+                                String string = (String) getArgs(0);
                                 if (string.length() == mMax) {
                                     if (mText != null) setArgs(0, mText);
                                 }
@@ -192,8 +195,11 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
     private void getClipboardData(ParamTool param) {
         ArrayList<ContentModel> readData = toContentModelList(FileHelper.read(mDataPath));
         if (readData.isEmpty()) {
-            String data = getData(param.getArgs(0));
-            if (data.isEmpty()) param.setResult(new ArrayList<>());
+            String data = getData((Context) param.getArgs(0));
+            if (data.isEmpty()) {
+                param.setResult(new ArrayList<>());
+                return;
+            }
             ArrayList<ContentModel> contentModels = toContentModelList(data);
             FileHelper.write(mDataPath, mGson.toJson(contentModels));
             param.setResult(toClipboardList(contentModels));
@@ -217,9 +223,7 @@ public class NewClipboardList extends BaseHC implements LoadInputMethodDex.OnInp
         if (readData.isEmpty()) {
             logW(TAG, "can't read any data!");
         } else {
-            if (readData.stream().anyMatch(contentModel -> contentModel.content.equals(add))) {
-                readData.removeIf(contentModel -> contentModel.content.equals(add));
-            }
+            readData.removeIf(contentModel -> contentModel.content.equals(add));
             readData.add(0, new ContentModel(add, type, System.currentTimeMillis()));
             FileHelper.write(mDataPath, mGson.toJson(readData));
         }
