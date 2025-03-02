@@ -4,6 +4,8 @@ plugins {
 }
 
 android {
+    def apk = "ClipboardList"
+
     Properties properties = new Properties()
     InputStream inputStream = project.rootProject.file('local.properties').newDataInputStream()
     properties.load(inputStream)
@@ -56,6 +58,14 @@ android {
         debug {
             minifyEnabled false
             signingConfig signingConfigs.debug
+        }
+    }
+
+    android {
+        applicationVariants.configureEach { variant ->
+            variant.outputs.configureEach { output ->
+                outputFileName = "${apk}-v${variant.versionName}(${variant.versionCode})_${variant.buildType.name}.apk"
+            }
         }
     }
 
