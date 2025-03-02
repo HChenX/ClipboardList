@@ -30,7 +30,7 @@ android {
         minSdk 30
         targetSdk 34
         //noinspection HighAppVersionCode
-        versionCode 2025030200
+        versionCode 2025030201
         versionName "4.0"
 
         signingConfig signingConfigs.release

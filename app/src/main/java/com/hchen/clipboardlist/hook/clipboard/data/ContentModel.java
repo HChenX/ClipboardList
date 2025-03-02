@@ -16,7 +16,7 @@
 
  * Copyright (C) 2023-2025 HChenX
  */
-package com.hchen.clipboardlist.data;
+package com.hchen.clipboardlist.hook.clipboard.data;
 
 import android.text.TextUtils;
 import android.util.Log;

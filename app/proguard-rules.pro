@@ -25,7 +25,7 @@
 -keep class com.hchen.clipboardlist.hook.**
 -keep class com.hchen.clipboardlist.hook.**$*
 
--keep class com.hchen.clipboardlist.data.ContentModel {*;}
+-keep class com.hchen.clipboardlist.hook.clipboard.data.ContentModel {*;}
 -keep class com.hchen.clipboardlist.hook.clipboard.RestoreContentModel {*;}
 -keep class  com.hchen.hooktool.HCState {
         static boolean isEnabled;
