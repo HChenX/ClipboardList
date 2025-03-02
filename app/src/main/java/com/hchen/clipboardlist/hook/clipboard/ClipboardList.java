@@ -122,7 +122,7 @@ public class ClipboardList extends BaseHC implements LoadInputMethodDex.OnInputM
                         ArrayList<ContentModel> cloneContentModel = ContentModel.cloneContentModel(clipboardContentModel);
                         addClipboard((Context) getArgs(0), cloneContentModel.toArray(new ContentModel[0]));
                         logI(TAG, "addClipDataToPhrase: " + cloneContentModel);
-                        returnNull();
+                        // returnNull();
                     }
                 })
 
