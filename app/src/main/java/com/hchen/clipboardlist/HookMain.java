@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
- * Copyright (C) 2023-2024 ClipboardList Contributions
+ * Copyright (C) 2023-2025 HChenX
  */
 package com.hchen.clipboardlist;
 
@@ -26,7 +26,7 @@ import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 
 import com.hchen.clipboardlist.hook.LoadInputMethodDex;
-import com.hchen.clipboardlist.hook.clipboard.NewClipboardList;
+import com.hchen.clipboardlist.hook.clipboard.ClipboardList;
 import com.hchen.clipboardlist.hook.clipboard.SoGouClipboard;
 import com.hchen.clipboardlist.hook.phrase.UnPhraseLimit;
 import com.hchen.clipboardlist.hook.unlockIme.UnlockIme;
@@ -41,6 +41,11 @@ import java.util.List;
 
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
+/**
+ * Hook 入口
+ *
+ * @author 焕晨HChen
+ */
 public class HookMain extends HCEntrance {
     public static String TAG = "ClipboardList";
     public static List<String> mAppsUsingInputMethod = new ArrayList<>();
@@ -48,11 +53,11 @@ public class HookMain extends HCEntrance {
     @Override
     public HCInit.BasicData initHC(HCInit.BasicData basicData) {
         return basicData.setModulePackageName(BuildConfig.APPLICATION_ID)
-                .setLogLevel(HCInit.LOG_D)
-                .setTag(TAG)
-                .initLogExpand(new String[]{
-                        "com.hchen.clipboardlist.hook"
-                });
+            .setLogLevel(HCInit.LOG_D)
+            .setTag(TAG)
+            .initLogExpand(new String[]{
+                "com.hchen.clipboardlist.hook"
+            });
     }
 
     @Override
@@ -81,7 +86,10 @@ public class HookMain extends HCEntrance {
 
             UnlockIme unlockIme = new UnlockIme();
             unlockIme.onLoadPackage();
-            new LoadInputMethodDex(new NewClipboardList(), unlockIme).onLoadPackage();
+            ClipboardList clipboardList = new ClipboardList();
+            clipboardList.onApplicationCreate();
+
+            new LoadInputMethodDex(clipboardList, unlockIme).onLoadPackage();
         }
     }
 

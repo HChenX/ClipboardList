@@ -17,3 +17,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "ClipboardList"
 include ':app'
+include ':phrase'
+include ':miui'

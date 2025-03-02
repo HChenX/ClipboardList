@@ -14,11 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
- * Copyright (C) 2023-2024 ClipboardList Contributions
+ * Copyright (C) 2023-2025 HChenX
  */
 package com.hchen.clipboardlist.hook.clipboard;
-
-import static com.hchen.hooktool.log.XposedLog.logE;
 
 import com.hchen.hooktool.BaseHC;
 import com.hchen.hooktool.hook.IHook;

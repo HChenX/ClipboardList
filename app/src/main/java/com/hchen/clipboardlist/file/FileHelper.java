@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
- * Copyright (C) 2023-2024 ClipboardList Contributions
+ * Copyright (C) 2023-2025 HChenX
  */
 package com.hchen.clipboardlist.file;
 
@@ -28,6 +28,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+/**
+ * 文件读写系统
+ *
+ * @author 焕晨HChen
+ */
 public class FileHelper {
     public static String TAG = "FileHelper";
 
@@ -66,7 +71,7 @@ public class FileHelper {
             return;
         }
         try (BufferedWriter writer = new BufferedWriter(
-                new FileWriter(path, false))) {
+            new FileWriter(path, false))) {
             writer.write(str);
         } catch (IOException e) {
             logE(TAG, e);
@@ -75,7 +80,7 @@ public class FileHelper {
 
     public static String read(String path) {
         try (BufferedReader reader = new BufferedReader(
-                new FileReader(path))) {
+            new FileReader(path))) {
             StringBuilder builder = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
@@ -88,7 +93,7 @@ public class FileHelper {
         }
     }
 
-    public static boolean empty(String path) {
+    public static boolean isEmpty(String path) {
         String result = read(path);
         return result.isEmpty() || result.equals("[]");
     }

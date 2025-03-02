@@ -14,11 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
- * Copyright (C) 2023-2024 ClipboardList Contributions
+ * Copyright (C) 2023-2025 HChenX
  */
 package com.hchen.clipboardlist.hook.phrase;
-
-import static com.hchen.hooktool.log.XposedLog.logE;
 
 import android.app.Activity;
 import android.content.Context;
@@ -57,7 +55,7 @@ public class UnPhraseLimit extends BaseHC {
     public void init() {
         try {
             // 解除 20 条限制
-            Class<?> InputMethodUtil = findClass("com.miui.inputmethod.InputMethodUtil").get();
+            Class<?> InputMethodUtil = findClass("com.miui.inputmethod.InputMethodUtil");
             setStaticField(InputMethodUtil, "sPhraseListSize", 0);
             hookMethod(InputMethodUtil, "queryPhrase", Context.class, new IHook() {
                 @Override
@@ -66,7 +64,7 @@ public class UnPhraseLimit extends BaseHC {
                 }
             });
 
-            Class<?> AddPhraseActivity = findClass("com.miui.phrase.AddPhraseActivity").get();
+            Class<?> AddPhraseActivity = findClass("com.miui.phrase.AddPhraseActivity");
             hookMethod("com.miui.phrase.PhraseEditActivity", "onClick", View.class, new IHook() {
                 @Override
                 public void before() {

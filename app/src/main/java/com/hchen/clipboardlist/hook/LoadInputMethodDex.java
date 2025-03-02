@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
- * Copyright (C) 2023-2024 ClipboardList Contributions
+ * Copyright (C) 2023-2025 HChenX
  */
 package com.hchen.clipboardlist.hook;
 
@@ -24,7 +24,7 @@ import com.hchen.hooktool.hook.IHook;
 import java.util.Arrays;
 
 /**
- * 获取常用语的 classloader。
+ * 获取常用语的 classloader
  *
  * @author 焕晨HChen
  */

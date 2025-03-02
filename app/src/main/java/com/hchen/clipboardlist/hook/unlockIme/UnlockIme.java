@@ -14,11 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
- * Copyright (C) 2023-2024 ClipboardList Contributions
+ * Copyright (C) 2023-2025 HChenX
  */
 package com.hchen.clipboardlist.hook.unlockIme;
-
-import static com.hchen.hooktool.log.XposedLog.logE;
 
 import android.content.Context;
 
@@ -30,14 +28,17 @@ import com.hchen.hooktool.tool.additional.SystemPropTool;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * 解除全面屏键盘优化限制
+ */
 public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMethodDexLoad {
     private boolean shouldHook = false;
 
     private static final String[] miuiImeList = new String[]{
-            "com.iflytek.inputmethod.miui",
-            "com.sohu.inputmethod.sogou.xiaomi",
-            "com.baidu.input_mi",
-            "com.miui.catcherpatch"
+        "com.iflytek.inputmethod.miui",
+        "com.sohu.inputmethod.sogou.xiaomi",
+        "com.baidu.input_mi",
+        "com.miui.catcherpatch"
     };
 
     private int navBarColor = 0;
@@ -47,7 +48,7 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
         fakeSupportImeList(classLoader);
         notDeleteNotSupportIme("com.miui.inputmethod.InputMethodBottomManager$MiuiSwitchInputMethodListener", classLoader);
         if (!shouldHook) return;
-        Class<?> InputMethodBottomManager = findClass("com.miui.inputmethod.InputMethodBottomManager", classLoader).get();
+        Class<?> InputMethodBottomManager = findClass("com.miui.inputmethod.InputMethodBottomManager", classLoader);
         if (InputMethodBottomManager != null) {
             fakeIsSupportIme(InputMethodBottomManager);
             fakeIsXiaoAiEnable(InputMethodBottomManager);
@@ -67,9 +68,9 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
         // 检查是否为小米定制输入法
         if (Arrays.stream(miuiImeList).anyMatch(s -> s.equals(lpparam.packageName))) return;
         shouldHook = true;
-        Class<?> sInputMethodServiceInjector = findClass("android.inputmethodservice.InputMethodServiceInjector").get();
+        Class<?> sInputMethodServiceInjector = findClass("android.inputmethodservice.InputMethodServiceInjector");
         if (sInputMethodServiceInjector == null)
-            sInputMethodServiceInjector = findClass("android.inputmethodservice.InputMethodServiceStubImpl").get();
+            sInputMethodServiceInjector = findClass("android.inputmethodservice.InputMethodServiceStubImpl");
         if (sInputMethodServiceInjector != null) {
             fakeIsSupportIme(sInputMethodServiceInjector);
             fakeIsXiaoAiEnable(sInputMethodServiceInjector);
@@ -101,24 +102,24 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
      */
     private void setPhraseBgColor(Class<?> clazz) {
         hookMethod("com.android.internal.policy.PhoneWindow",
-                "setNavigationBarColor", int.class,
-                new IHook() {
-                    @Override
-                    public void after() {
-                        if ((int) getArgs(0) == 0) return;
-                        navBarColor = (int) getArgs(0);
-                        customizeBottomViewColor(clazz);
-                    }
+            "setNavigationBarColor", int.class,
+            new IHook() {
+                @Override
+                public void after() {
+                    if ((int) getArgs(0) == 0) return;
+                    navBarColor = (int) getArgs(0);
+                    customizeBottomViewColor(clazz);
                 }
+            }
         );
 
         hookAllMethod(clazz, "addMiuiBottomView",
-                new IHook() {
-                    @Override
-                    public void after() {
-                        customizeBottomViewColor(clazz);
-                    }
+            new IHook() {
+                @Override
+                public void after() {
+                    customizeBottomViewColor(clazz);
                 }
+            }
         );
     }
 
@@ -136,7 +137,9 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
      * 针对A10的修复切换输入法列表
      */
     private void notDeleteNotSupportIme(String className, ClassLoader classLoader) {
-        hookMethod(className, classLoader, "deleteNotSupportIme", doNothing());
+        if (existsMethod(className, classLoader, "deleteNotSupportIme")) {
+            hookMethod(className, classLoader, "deleteNotSupportIme", doNothing());
+        }
     }
 
     /**
@@ -144,15 +147,15 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
      */
     private void fakeSupportImeList(ClassLoader classLoader) {
         hookMethod("com.miui.inputmethod.InputMethodBottomManager", classLoader, "getSupportIme",
-                new IHook() {
-                    @Override
-                    public void before() {
-                        List<?> mEnabledInputMethodList = (List<?>) callMethod(getField(getStaticField(
-                                "com.miui.inputmethod.InputMethodBottomManager", classLoader,
-                                "sBottomViewHelper"), "mImm"), "getEnabledInputMethodList");
-                        setResult(mEnabledInputMethodList);
-                    }
+            new IHook() {
+                @Override
+                public void before() {
+                    List<?> mEnabledInputMethodList = (List<?>) callMethod(getField(getStaticField(
+                        "com.miui.inputmethod.InputMethodBottomManager", classLoader,
+                        "sBottomViewHelper"), "mImm"), "getEnabledInputMethodList");
+                    setResult(mEnabledInputMethodList);
                 }
+            }
         );
     }
 }
