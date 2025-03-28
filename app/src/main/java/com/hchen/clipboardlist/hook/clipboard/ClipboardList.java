@@ -57,7 +57,7 @@ public class ClipboardList extends BaseHC implements LoadInputMethodDex.OnInputM
     private static String mDataPath;
     private static boolean isNewMode = false;
     private static String mText = null;
-    private static int mMaxSize = -1;
+    private static Integer mMaxSize = -1;
 
     @Override
     protected void init() {
@@ -152,7 +152,8 @@ public class ClipboardList extends BaseHC implements LoadInputMethodDex.OnInputM
                 .anyMethod("commitClipDataAndTrack").hook(new IHook() {
                     @Override
                     public void before() {
-                        int type = (int) getArgs(3);
+                        Integer type = (Integer) getArgs(3);
+                        if (type == null) return;
                         if (type == 3 || type == 2) {
                             setArgs(3, 10);
                         }
@@ -174,15 +175,14 @@ public class ClipboardList extends BaseHC implements LoadInputMethodDex.OnInputM
                     @Override
                     public void before() {
                         if (mMaxSize == -1) {
-                            try {
-                                mMaxSize = (int) getStaticField(
-                                    "com.miui.inputmethod.MiuiClipboardManager",
-                                    classLoader,
-                                    "MAX_CLIP_CONTENT_SIZE"
-                                );
-                            } catch (Throwable e) {
+                            mMaxSize = (Integer) getStaticField(
+                                "com.miui.inputmethod.MiuiClipboardManager",
+                                classLoader,
+                                "MAX_CLIP_CONTENT_SIZE"
+                            );
+
+                            if (mMaxSize == null)
                                 mMaxSize = 5000;
-                            }
                         }
 
                         String string = (String) getArgs(0);
