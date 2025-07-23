@@ -20,17 +20,17 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class com.hchen.clipboardlist.HookMain
--keep class * extends com.hchen.hooktool.BaseHC
+-keep class * extends com.hchen.hooktool.HCEntrance
+-keep class * extends com.hchen.hooktool.HCBase
 -keep class com.hchen.clipboardlist.hook.**
 -keep class com.hchen.clipboardlist.hook.**$*
 
--keep class com.hchen.clipboardlist.hook.clipboard.data.ContentModel {*;}
--keep class com.hchen.clipboardlist.hook.clipboard.RestoreContentModel {*;}
--keep class  com.hchen.hooktool.HCState {
-        static boolean isEnabled;
-        static java.lang.String mFramework;
-        static int  mVersion;
+-keep class com.hchen.clipboardlist.data.ContentModel {*;}
+-keep class com.hchen.dexkitcache.DexkitCache$MemberData {*;}
+-keep class com.hchen.hooktool.HCState {
+        static boolean isXposedEnabled;
+        static java.lang.String framework;
+        static int version;
  }
 -keep class * implements android.os.Parcelable {
         public static ** CREATOR;

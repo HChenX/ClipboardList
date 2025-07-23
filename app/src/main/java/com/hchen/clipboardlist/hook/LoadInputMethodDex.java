@@ -18,40 +18,37 @@
  */
 package com.hchen.clipboardlist.hook;
 
-import com.hchen.hooktool.BaseHC;
+import com.hchen.clipboardlist.hook.clipboard.UnlockClipboardLimit;
+import com.hchen.clipboardlist.hook.unlockIme.UnlockIme;
+import com.hchen.hooktool.HCBase;
 import com.hchen.hooktool.hook.IHook;
-
-import java.util.Arrays;
 
 /**
  * 获取常用语的 classloader
  *
  * @author 焕晨HChen
  */
-public class LoadInputMethodDex extends BaseHC {
-    private final OnInputMethodDexLoad[] mOnInputMethodDexLoad;
-    private boolean isHooked;
-
-    public LoadInputMethodDex(OnInputMethodDexLoad... dexLoads) {
-        mOnInputMethodDexLoad = dexLoads;
-    }
+public class LoadInputMethodDex extends HCBase {
+    private static boolean isLoaded = false;
 
     @Override
     public void init() {
         hookMethod("android.inputmethodservice.InputMethodModuleManager",
-                "loadDex", ClassLoader.class, String.class,
-                new IHook() {
-                    @Override
-                    public void after() {
-                        if (isHooked) return;
-                        Arrays.stream(mOnInputMethodDexLoad).forEach(load -> load.load((ClassLoader) getArgs(0)));
-                        isHooked = true;
-                    }
-                }
-        );
-    }
+            "loadDex",
+            ClassLoader.class, String.class,
+            new IHook() {
+                @Override
+                public void after() {
+                    if (isLoaded) return;
 
-    public interface OnInputMethodDexLoad {
-        void load(ClassLoader classLoader);
+                    ClassLoader classLoader = (ClassLoader) getArg(0);
+                    UnlockClipboardLimit.unlock(classLoader);
+                    UnlockIme.unlock(classLoader);
+
+                    logI(TAG, "Input method classloader: " + classLoader);
+                    isLoaded = true;
+                }
+            }
+        );
     }
 }

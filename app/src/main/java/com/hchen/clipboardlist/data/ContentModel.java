@@ -16,22 +16,20 @@
 
  * Copyright (C) 2023-2025 HChenX
  */
-package com.hchen.clipboardlist.hook.clipboard.data;
+package com.hchen.clipboardlist.data;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.hchen.hooktool.core.CoreTool;
 import com.hchen.hooktool.log.XposedLog;
-import com.hchen.hooktool.tool.CoreTool;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 
 /**
  * 剪贴板数据
@@ -39,7 +37,7 @@ import java.util.LinkedHashSet;
  * @author 焕晨HChen
  */
 public class ContentModel {
-    public static final String TAG = "ClipboardContentModel";
+    public static final String TAG = "ContentModel";
     public static final String PAD = "pad";
     public static final String PC = "pc";
     public static final String PHONE = "phone";
@@ -54,7 +52,8 @@ public class ContentModel {
     private long time;
     private int type;
 
-    public static ArrayList<ContentModel> cloneContentModel(Object model) {
+    @NonNull
+    public static ArrayList<ContentModel> cloneContentModel(@NonNull Object model) {
         JSONObject jsonObject = (JSONObject) CoreTool.callMethod(model, "toJSONObject");
 
         JSONArray jsonArray = new JSONArray();
@@ -62,25 +61,28 @@ public class ContentModel {
         return cloneContentModel(jsonArray.toString());
     }
 
-    public static ArrayList<ContentModel> cloneContentModel(String content) {
-        if (content == null || content.isEmpty()) return null;
+    @NonNull
+    public static ArrayList<ContentModel> cloneContentModel(@NonNull String content) {
+        if (content.isEmpty()) return new ArrayList<>();
 
-        LinkedHashSet<ContentModel> linkedHashSet = new LinkedHashSet<>();
         try {
+            ArrayList<ContentModel> contentModels = new ArrayList<>();
             JSONArray jsonArray = new JSONArray(content);
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
                 if (jsonObject != null) {
-                    linkedHashSet.add(fromJSONObject(jsonObject));
+                    contentModels.add(fromJSONObject(jsonObject));
                 }
             }
+            return contentModels;
         } catch (JSONException e) {
             XposedLog.logE(TAG, e);
         }
-        return new ArrayList<>(linkedHashSet);
+        return new ArrayList<>();
     }
 
-    private static ContentModel fromJSONObject(JSONObject jSONObject) {
+    @NonNull
+    private static ContentModel fromJSONObject(@NonNull JSONObject jSONObject) {
         ContentModel contentModel = new ContentModel();
         contentModel.setContent(jSONObject.optString("content"));
         contentModel.setType(jSONObject.optInt("type"));
@@ -89,7 +91,7 @@ public class ContentModel {
         contentModel.setDeviceId(jSONObject.optString("deviceId"));
         contentModel.setAcrossDevices(jSONObject.optBoolean("isAcrossDevices"));
         contentModel.setDeviceName(jSONObject.optString("deviceName"));
-        contentModel.setIsShow(jSONObject.optBoolean("isShow"));
+        contentModel.setShow(jSONObject.optBoolean("isShow"));
         contentModel.setTemp(jSONObject.optBoolean("isTemp"));
         return contentModel;
     }
@@ -114,7 +116,7 @@ public class ContentModel {
         return deviceType;
     }
 
-    public boolean getIsShow() {
+    public boolean isShow() {
         return isShow;
     }
 
@@ -134,9 +136,8 @@ public class ContentModel {
         return isTemp;
     }
 
-
-    public void setAcrossDevices(boolean enable) {
-        isAcrossDevices = enable;
+    public void setAcrossDevices(boolean isAcrossDevices) {
+        this.isAcrossDevices = isAcrossDevices;
     }
 
     public void setContent(String content) {
@@ -161,7 +162,7 @@ public class ContentModel {
             }
             determineContent = jSONArray2.toString();
         } catch (Exception e) {
-            Log.e(TAG, "ClipboardContentModel: setDetermineContent Exception!", e);
+            XposedLog.logE(TAG, e);
         }
     }
 
@@ -177,7 +178,7 @@ public class ContentModel {
         deviceType = type;
     }
 
-    public void setIsShow(boolean show) {
+    public void setShow(boolean show) {
         isShow = show;
     }
 
@@ -191,15 +192,6 @@ public class ContentModel {
 
     public void setType(int type) {
         this.type = type;
-    }
-
-    @NonNull
-    @Override
-    public String toString() {
-        return "ContentModel[content=" + content + ", determineContent=" + determineContent +
-            ", deviceId=" + deviceId + ", deviceName=" + deviceName + ", deviceType=" + deviceType +
-            ", isAcrossDevices=" + isAcrossDevices + ", isShow=" + isShow +
-            ", isTemp=" + isTemp + ", time=" + time + ", type=" + type + "]";
     }
 
     public JSONObject toJSONObject() {
@@ -216,8 +208,17 @@ public class ContentModel {
             jSONObject.put("isShow", isShow);
             jSONObject.put("isTemp", isTemp);
         } catch (JSONException e7) {
-            Log.e(TAG, "toJSONObject: JSONException!", e7);
+            XposedLog.logE(TAG, e7);
         }
         return jSONObject;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "ContentModel[content=" + content + ", determineContent=" + determineContent +
+            ", deviceId=" + deviceId + ", deviceName=" + deviceName + ", deviceType=" + deviceType +
+            ", isAcrossDevices=" + isAcrossDevices + ", isShow=" + isShow +
+            ", isTemp=" + isTemp + ", time=" + time + ", type=" + type + "]";
     }
 }

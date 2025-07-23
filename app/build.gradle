@@ -25,15 +25,15 @@ android {
     }
 
     namespace 'com.hchen.clipboardlist'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.hchen.clipboardlist"
         minSdk 30
-        targetSdk 34
+        targetSdk 35
         //noinspection HighAppVersionCode
-        versionCode 2025032800
-        versionName "4.1"
+        versionCode 2025072300
+        versionName "4.3"
 
         signingConfig signingConfigs.release
     }
@@ -81,15 +81,14 @@ android {
     androidResources {
         generateLocaleConfig = true
     }
-    
 }
 
 dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
-    implementation 'org.luckypray:dexkit:2.0.3'
-    implementation 'com.github.HChenX:HookTool:v.1.2.7'
-    implementation 'com.google.code.gson:gson:2.12.1'
+    implementation 'org.luckypray:dexkit:2.0.6'
+    implementation 'com.github.HChenX:HookTool:v.2.1.9'
+    implementation 'com.github.HChenX:DexkitCache:v.0.7'
+    implementation 'com.google.code.gson:gson:2.13.1'
+    implementation 'com.tencent:mmkv:2.2.2'
     implementation 'androidx.annotation:annotation:1.9.1'
-
-    compileOnly(project(':miui'))
 }

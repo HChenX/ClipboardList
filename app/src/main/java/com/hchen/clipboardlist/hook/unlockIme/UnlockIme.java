@@ -20,10 +20,11 @@ package com.hchen.clipboardlist.hook.unlockIme;
 
 import android.content.Context;
 
-import com.hchen.clipboardlist.hook.LoadInputMethodDex;
-import com.hchen.hooktool.BaseHC;
+import androidx.annotation.NonNull;
+
+import com.hchen.hooktool.HCBase;
 import com.hchen.hooktool.hook.IHook;
-import com.hchen.hooktool.tool.additional.SystemPropTool;
+import com.hchen.hooktool.utils.SystemPropTool;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,9 +32,10 @@ import java.util.List;
 /**
  * 解除全面屏键盘优化限制
  */
-public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMethodDexLoad {
-    private boolean shouldHook = false;
-
+public class UnlockIme extends HCBase {
+    private static final String TAG = "UnlockIme";
+    private static boolean shouldHook = false;
+    private static int navBarColor = 0;
     private static final String[] miuiImeList = new String[]{
         "com.iflytek.inputmethod.miui",
         "com.sohu.inputmethod.sogou.xiaomi",
@@ -41,19 +43,18 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
         "com.miui.catcherpatch"
     };
 
-    private int navBarColor = 0;
-
-    @Override
-    public void load(ClassLoader classLoader) {
+    public static void unlock(@NonNull ClassLoader classLoader) {
         fakeSupportImeList(classLoader);
-        notDeleteNotSupportIme("com.miui.inputmethod.InputMethodBottomManager$MiuiSwitchInputMethodListener", classLoader);
+        notDeleteNotSupportIme(findClass("com.miui.inputmethod.InputMethodBottomManager$MiuiSwitchInputMethodListener", classLoader));
+
         if (!shouldHook) return;
-        Class<?> InputMethodBottomManager = findClass("com.miui.inputmethod.InputMethodBottomManager", classLoader);
+
+        Class<?> InputMethodBottomManager = findClassIfExists("com.miui.inputmethod.InputMethodBottomManager", classLoader);
         if (InputMethodBottomManager != null) {
-            fakeIsSupportIme(InputMethodBottomManager);
-            fakeIsXiaoAiEnable(InputMethodBottomManager);
+            fakeSupportIme(InputMethodBottomManager);
+            fakeXiaoAiEnable(InputMethodBottomManager);
         } else {
-            logE(TAG, "Class not found: com.miui.inputmethod.InputMethodBottomManager");
+            logE(TAG, "Not found class: com.miui.inputmethod.InputMethodBottomManager");
         }
     }
 
@@ -64,28 +65,32 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
         }
     }
 
-    private void startHook() {
+    private static void startHook() {
         // 检查是否为小米定制输入法
-        if (Arrays.stream(miuiImeList).anyMatch(s -> s.equals(lpparam.packageName))) return;
+        if (Arrays.stream(miuiImeList).anyMatch(s -> s.equals(loadPackageParam.packageName)))
+            return;
+
         shouldHook = true;
-        Class<?> sInputMethodServiceInjector = findClass("android.inputmethodservice.InputMethodServiceInjector");
+
+        Class<?> sInputMethodServiceInjector = findClassIfExists("android.inputmethodservice.InputMethodServiceInjector");
         if (sInputMethodServiceInjector == null)
-            sInputMethodServiceInjector = findClass("android.inputmethodservice.InputMethodServiceStubImpl");
+            sInputMethodServiceInjector = findClassIfExists("android.inputmethodservice.InputMethodServiceStubImpl");
+
         if (sInputMethodServiceInjector != null) {
-            fakeIsSupportIme(sInputMethodServiceInjector);
-            fakeIsXiaoAiEnable(sInputMethodServiceInjector);
+            fakeSupportIme(sInputMethodServiceInjector);
+            fakeXiaoAiEnable(sInputMethodServiceInjector);
             setPhraseBgColor(sInputMethodServiceInjector);
         } else {
-            logE(TAG, "Class not found: InputMethodServiceInjector");
+            logE(TAG, "Not found class: android.inputmethodservice.InputMethodServiceStubImpl");
         }
 
-        notDeleteNotSupportIme("android.inputmethodservice.InputMethodServiceInjector$MiuiSwitchInputMethodListener", classLoader);
+        notDeleteNotSupportIme(findClass("android.inputmethodservice.InputMethodServiceInjector$MiuiSwitchInputMethodListener"));
     }
 
     /**
      * 跳过包名检查，直接开启输入法优化
      */
-    private void fakeIsSupportIme(Class<?> clazz) {
+    private static void fakeSupportIme(@NonNull Class<?> clazz) {
         setStaticField(clazz, "sIsImeSupport", 1);
         hookMethod(clazz, "isImeSupport", Context.class, returnResult(true));
     }
@@ -93,27 +98,30 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
     /**
      * 小爱语音输入按钮失效修复
      */
-    private void fakeIsXiaoAiEnable(Class<?> clazz) {
+    private static void fakeXiaoAiEnable(@NonNull Class<?> clazz) {
         hookMethod(clazz, "isXiaoAiEnable", returnResult(false));
     }
 
     /**
      * 在适当的时机修改抬高区域背景颜色
      */
-    private void setPhraseBgColor(Class<?> clazz) {
+    private static void setPhraseBgColor(@NonNull Class<?> clazz) {
         hookMethod("com.android.internal.policy.PhoneWindow",
-            "setNavigationBarColor", int.class,
+            "setNavigationBarColor",
+            int.class,
             new IHook() {
                 @Override
                 public void after() {
-                    if ((int) getArgs(0) == 0) return;
-                    navBarColor = (int) getArgs(0);
+                    if ((int) getArg(0) == 0) return;
+
+                    navBarColor = (int) getArg(0);
                     customizeBottomViewColor(clazz);
                 }
             }
         );
 
-        hookAllMethod(clazz, "addMiuiBottomView",
+        hookAllMethod(clazz,
+            "addMiuiBottomView",
             new IHook() {
                 @Override
                 public void after() {
@@ -126,7 +134,7 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
     /**
      * 将导航栏颜色赋值给输入法优化的底图
      */
-    private void customizeBottomViewColor(Class<?> clazz) {
+    private static void customizeBottomViewColor(@NonNull Class<?> clazz) {
         if (navBarColor != 0) {
             int color = -0x1 - navBarColor;
             callStaticMethod(clazz, "customizeBottomViewColor", true, navBarColor, color | -0x1000000, color | 0x66000000);
@@ -136,24 +144,32 @@ public class UnlockIme extends BaseHC implements LoadInputMethodDex.OnInputMetho
     /**
      * 针对A10的修复切换输入法列表
      */
-    private void notDeleteNotSupportIme(String className, ClassLoader classLoader) {
-        if (existsMethod(className, classLoader, "deleteNotSupportIme")) {
-            hookMethod(className, classLoader, "deleteNotSupportIme", doNothing());
+    private static void notDeleteNotSupportIme(@NonNull Class<?> clazz) {
+        if (existsMethod(clazz, "deleteNotSupportIme")) {
+            hookMethod(clazz, "deleteNotSupportIme", doNothing());
         }
     }
 
     /**
      * 使切换输入法界面显示第三方输入法
      */
-    private void fakeSupportImeList(ClassLoader classLoader) {
-        hookMethod("com.miui.inputmethod.InputMethodBottomManager", classLoader, "getSupportIme",
+    private static void fakeSupportImeList(@NonNull ClassLoader classLoader) {
+        hookMethod("com.miui.inputmethod.InputMethodBottomManager", classLoader,
+            "getSupportIme",
             new IHook() {
                 @Override
                 public void before() {
-                    List<?> mEnabledInputMethodList = (List<?>) callMethod(getField(getStaticField(
-                        "com.miui.inputmethod.InputMethodBottomManager", classLoader,
-                        "sBottomViewHelper"), "mImm"), "getEnabledInputMethodList");
-                    setResult(mEnabledInputMethodList);
+                    List<?> list = (List<?>) callMethod(
+                        getField(
+                            getStaticField(
+                                "com.miui.inputmethod.InputMethodBottomManager", classLoader,
+                                "sBottomViewHelper"
+                            ),
+                            "mImm"
+                        ),
+                        "getEnabledInputMethodList"
+                    );
+                    setResult(list);
                 }
             }
         );
