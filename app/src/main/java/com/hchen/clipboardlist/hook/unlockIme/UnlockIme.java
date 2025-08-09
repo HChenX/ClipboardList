@@ -45,7 +45,7 @@ public class UnlockIme extends HCBase {
 
     public static void unlock(@NonNull ClassLoader classLoader) {
         fakeSupportImeList(classLoader);
-        notDeleteNotSupportIme(findClass("com.miui.inputmethod.InputMethodBottomManager$MiuiSwitchInputMethodListener", classLoader));
+        notDeleteNotSupportIme(findClassIfExists("com.miui.inputmethod.InputMethodBottomManager$MiuiSwitchInputMethodListener", classLoader));
 
         if (!shouldHook) return;
 
@@ -84,7 +84,7 @@ public class UnlockIme extends HCBase {
             logE(TAG, "Not found class: android.inputmethodservice.InputMethodServiceStubImpl");
         }
 
-        notDeleteNotSupportIme(findClass("android.inputmethodservice.InputMethodServiceInjector$MiuiSwitchInputMethodListener"));
+        notDeleteNotSupportIme(findClassIfExists("android.inputmethodservice.InputMethodServiceInjector$MiuiSwitchInputMethodListener"));
     }
 
     /**
@@ -99,7 +99,7 @@ public class UnlockIme extends HCBase {
      * 小爱语音输入按钮失效修复
      */
     private static void fakeXiaoAiEnable(@NonNull Class<?> clazz) {
-        hookMethod(clazz, "isXiaoAiEnable", returnResult(false));
+        hookMethodIfExists(clazz, "isXiaoAiEnable", returnResult(false));
     }
 
     /**
@@ -144,7 +144,7 @@ public class UnlockIme extends HCBase {
     /**
      * 针对A10的修复切换输入法列表
      */
-    private static void notDeleteNotSupportIme(@NonNull Class<?> clazz) {
+    private static void notDeleteNotSupportIme(Class<?> clazz) {
         if (existsMethod(clazz, "deleteNotSupportIme")) {
             hookMethod(clazz, "deleteNotSupportIme", doNothing());
         }

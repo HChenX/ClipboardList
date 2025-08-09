@@ -64,32 +64,36 @@ public class HookInit extends HCEntrance {
 
     @Override
     public void onLoadPackage(@NonNull LoadPackageParam lpparam) throws Throwable {
-        // 加载 Dexkit 缓存工具
-        if (lpparam.appInfo != null) {
-            DexkitCache.init(
-                "clipboard_list",
-                lpparam.classLoader,
-                lpparam.appInfo.sourceDir,
-                lpparam.appInfo.dataDir
-            );
+        try {
+            // 加载 Dexkit 缓存工具
+            if (lpparam.appInfo != null) {
+                DexkitCache.init(
+                    "clipboard_list",
+                    lpparam.classLoader,
+                    lpparam.appInfo.sourceDir,
+                    lpparam.appInfo.dataDir
+                );
+            }
+
+            HCInit.initLoadPackageParam(lpparam);
+
+            if (Objects.equals(lpparam.packageName, "com.miui.phrase")) {
+                new UnlockPhraseLimit().onLoadPackage();
+                return;
+            }
+
+            if (
+                Objects.equals(lpparam.packageName, "com.sohu.inputmethod.sogou.xiaomi") ||
+                    Objects.equals(lpparam.packageName, "com.sohu.inputmethod.sogou")
+            ) {
+                new UnlockSogouLimit().onLoadPackage();
+            }
+
+            new LoadInputMethodDex().onLoadPackage();
+            new UnlockIme().onLoadPackage();
+            new UnlockClipboardLimit().onApplication().onLoadPackage();
+        } finally {
+            DexkitCache.close();
         }
-
-        HCInit.initLoadPackageParam(lpparam);
-
-        if (Objects.equals(lpparam.packageName, "com.miui.phrase")) {
-            new UnlockPhraseLimit().onLoadPackage();
-            return;
-        }
-
-        if (
-            Objects.equals(lpparam.packageName, "com.sohu.inputmethod.sogou.xiaomi") ||
-                Objects.equals(lpparam.packageName, "com.sohu.inputmethod.sogou")
-        ) {
-            new UnlockSogouLimit().onLoadPackage();
-        }
-
-        new LoadInputMethodDex().onLoadPackage();
-        new UnlockIme().onLoadPackage();
-        new UnlockClipboardLimit().onApplication().onLoadPackage();
     }
 }

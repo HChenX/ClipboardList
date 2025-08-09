@@ -30,6 +30,7 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.hchen.clipboardlist.data.ContentModel;
 import com.hchen.clipboardlist.file.FileHelper;
@@ -63,7 +64,7 @@ public class UnlockClipboardLimit extends HCBase {
     }
 
     @Override
-    protected void onApplicationAfter(@NonNull Context context) {
+    protected void initApplicationAfter(@NonNull Context context) {
         if (isRegistered) return;
 
         context.getContentResolver().registerContentObserver(
@@ -315,14 +316,22 @@ public class UnlockClipboardLimit extends HCBase {
     private static ArrayList<ContentModel> toContentModelList(@NonNull String data) {
         if (data.isEmpty()) return new ArrayList<>();
 
-        ArrayList<ContentModel> contentModels = mGson.fromJson(
-            data,
-            new TypeToken<ArrayList<ContentModel>>() {
-            }.getType()
-        );
-        if (contentModels == null)
-            return new ArrayList<>();
-        return contentModels;
+        try {
+            ArrayList<ContentModel> contentModels = mGson.fromJson(
+                data,
+                new TypeToken<ArrayList<ContentModel>>() {
+                }.getType()
+            );
+
+            if (contentModels == null)
+                return new ArrayList<>();
+            return contentModels;
+        } catch (JsonSyntaxException e) {
+            FileHelper.write(mDataPath, "[]"); // Clear data
+            logW(TAG, "Json data is damaged and cannot be parsed! The data will be automatically cleared...");
+        }
+
+        return new ArrayList<>();
     }
 
     @NonNull

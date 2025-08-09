@@ -62,7 +62,6 @@ public class UnlockPhraseLimit extends HCBase {
                 @Override
                 public void after() {
                     setStaticField(InputMethodUtil, "sPhraseListSize", 0);
-                    observeCall();
                 }
             }
         );
